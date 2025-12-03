@@ -15,6 +15,10 @@ export interface DiscoverMoviesParams {
   with_genres?: string; // comma-separated IDs
   page?: number;
   year?: number;
+  'primary_release_date.gte'?: string; // YYYY-MM-DD format
+  'primary_release_date.lte'?: string; // YYYY-MM-DD format
+  'with_runtime.gte'?: number; // minimum runtime in minutes
+  'with_runtime.lte'?: number; // maximum runtime in minutes
   region?: string;
 }
 
@@ -109,6 +113,10 @@ export class TmdbApiClient {
       with_genres: params.with_genres,
       page: params.page,
       year: params.year,
+      'primary_release_date.gte': params['primary_release_date.gte'],
+      'primary_release_date.lte': params['primary_release_date.lte'],
+      'with_runtime.gte': params['with_runtime.gte'],
+      'with_runtime.lte': params['with_runtime.lte'],
       region: params.region ?? this.region,
     });
     return this.doFetch<DiscoverMoviesResponse>(url);
