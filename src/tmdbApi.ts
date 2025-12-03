@@ -55,19 +55,21 @@ export interface WatchProvidersResponse {
   };
 }
 
-export class TmdbMcpClient {
+export class TmdbApiClient {
   private readonly baseUrl: string;
   private readonly apiKey: string;
   private readonly region: string;
 
   constructor(baseUrl?: string, apiKey?: string, region?: string) {
-    this.baseUrl = baseUrl ?? config.TMDB_MCP_SERVER_URL;
+    this.baseUrl = baseUrl ?? config.TMDB_BASE_URL;
     this.apiKey = apiKey ?? config.TMDB_API_KEY;
     this.region = region ?? config.TMDB_REGION;
   }
 
   private buildUrl(path: string, params?: Record<string, string | number | undefined>): string {
-    const url = new URL(path, this.baseUrl.endsWith('/') ? this.baseUrl : this.baseUrl + '/');
+    const normalizedBase = this.baseUrl.endsWith('/') ? this.baseUrl : this.baseUrl + '/';
+    const url = new URL(path, normalizedBase);
+    // TMDb v3 supports API key via query string
     url.searchParams.set('api_key', this.apiKey);
     if (params) {
       for (const [k, v] of Object.entries(params)) {
@@ -83,21 +85,21 @@ export class TmdbMcpClient {
     let resp: Response;
     try {
       resp = await fetch(url, {
-        headers: { 'Accept': 'application/json' }
+        headers: { Accept: 'application/json' },
       });
     } catch (err: any) {
-      throw new Error(`Network error calling TMDb MCP: ${err?.message ?? String(err)}`);
+      throw new Error(`Network error calling TMDb API: ${err?.message ?? String(err)}`);
     }
 
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
-      throw new Error(`TMDb MCP error ${resp.status}: ${text || resp.statusText}`);
+      throw new Error(`TMDb API error ${resp.status}: ${text || resp.statusText}`);
     }
 
     try {
       return (await resp.json()) as T;
     } catch (err: any) {
-      throw new Error(`Invalid JSON from TMDb MCP: ${err?.message ?? String(err)}`);
+      throw new Error(`Invalid JSON from TMDb API: ${err?.message ?? String(err)}`);
     }
   }
 
@@ -133,4 +135,4 @@ export class TmdbMcpClient {
   }
 }
 
-export default TmdbMcpClient;
+export default TmdbApiClient;

@@ -18,7 +18,7 @@ Finally, it provides a complete series of code-generation LLM prompts; each prom
   - Configuration via `.env`
   - Logging, error handling, and basic telemetry
 - Data Integrations (single source)
-  - TMDb MCP (metadata + watch providers)
+  - TMDb REST API (metadata + watch providers)
 - Core Domain Modules
   - Mood-to-Genre Mapper
   - Query Builder (discover/search/detail)
@@ -45,7 +45,7 @@ Finally, it provides a complete series of code-generation LLM prompts; each prom
 2. Config + Env Management
 3. Mood Mapping Module
 4. Input Validation Module
-5. TMDb MCP Client + Adapter
+5. TMDb API Client
 6. Discovery Query Builder (genres/year/runtime)
 7. Watch Providers (CA) Retrieval
 8. Filtering (platforms/runtime/year)
@@ -82,10 +82,10 @@ Each chunk builds on prior work and is test-driven.
 - Step 4.1: Validate runtime ranges, year ranges, platform names
 - Step 4.2: Unit tests for valid/invalid cases
 
-### Chunk 5: TMDb MCP Client + Adapter
-- Step 5.1: Implement a thin adapter to call MCP operations
+### Chunk 5: TMDb API Client
+- Step 5.1: Implement a thin adapter to call TMDb REST endpoints
 - Step 5.2: Add discover, detail, search, genres, watch-providers methods
-- Step 5.3: Integration tests (mock MCP responses)
+- Step 5.3: Integration tests (mock HTTP responses)
 
 ### Chunk 6: Discovery Query Builder
 - Step 6.1: Translate inputs to TMDb discover params (genres/year/runtime)
@@ -173,13 +173,13 @@ Deliverables:
 Implement configuration management for the Movie Agent.
 
 Requirements:
-- Create src/config.ts that reads environment variables: TMDB_API_KEY, TMDB_MCP_SERVER_URL, TMDB_REGION, CACHE_TTL, MAX_RECOMMENDATIONS, MIN_RECOMMENDATIONS
-- Use dotenv to load .env; validate required keys TMDB_API_KEY and TMDB_MCP_SERVER_URL; default TMDB_REGION to "CA", CACHE_TTL to 86400, MAX_RECOMMENDATIONS to 5, MIN_RECOMMENDATIONS to 3
+- Create src/config.ts that reads environment variables: TMDB_API_KEY, TMDB_BASE_URL, TMDB_REGION, CACHE_TTL, MAX_RECOMMENDATIONS, MIN_RECOMMENDATIONS
+- Use dotenv to load .env; validate required key TMDB_API_KEY; default TMDB_BASE_URL to "https://api.themoviedb.org/3"; default TMDB_REGION to "CA", CACHE_TTL to 86400, MAX_RECOMMENDATIONS to 5, MIN_RECOMMENDATIONS to 3
 - Export a typed Config object
 - Fail-fast with descriptive errors when required keys are missing
 
 Tests:
-- src/__tests__/config.test.ts covering: default region, ttl, min/max recs; missing API key throws; missing MCP server URL throws
+- src/__tests__/config.test.ts covering: default region, ttl, min/max recs; missing API key throws; TMDB_BASE_URL defaults correctly
 
 Deliverables:
 - src/config.ts
@@ -227,28 +227,28 @@ Deliverables:
 - src/__tests__/validate.test.ts
 ```
 
-### Prompt 5: TMDb MCP Client + Adapter
+### Prompt 5: TMDb API Client
 
 ```text
-Implement a thin TMDb MCP client adapter (mockable).
+Implement a thin TMDb REST API client adapter (mockable).
 
 Requirements:
-- Create src/tmdbMcp.ts with class TmdbMcpClient using fetch or MCP SDK; methods:
+- Create src/tmdbApi.ts with class TmdbApiClient using fetch or axios; methods:
   - discoverMovies(params)
   - getMovieDetails(movieId)
   - searchMovies(query)
   - getGenres()
   - getWatchProviders(movieId)
-- Read TMDB_MCP_SERVER_URL and TMDB_API_KEY from config
+- Read TMDB_BASE_URL and TMDB_API_KEY from config
 - All methods return typed results; include minimal interfaces
 - Add error handling: network errors, non-200 responses
 
 Tests:
-- src/__tests__/tmdbMcp.test.ts using jest mocks to simulate MCP responses and error paths
+- src/__tests__/tmdbApi.test.ts using jest mocks to simulate HTTP responses and error paths
 
 Deliverables:
-- src/tmdbMcp.ts
-- src/__tests__/tmdbMcp.test.ts
+- src/tmdbApi.ts
+- src/__tests__/tmdbApi.test.ts
 ```
 
 ### Prompt 6: Discovery Query Builder
@@ -262,7 +262,7 @@ Requirements:
   - release year or range
   - runtime constraints (min/max)
 - Ensure only movie type is requested
-- Export function discoverMovies(input) that calls client.discoverMovies(buildDiscoverParams(input))
+- Export function discoverMovies(input) that calls apiClient.discoverMovies(buildDiscoverParams(input))
 
 Tests:
 - src/__tests__/discover.test.ts verifying param mapping for typical inputs and edge cases

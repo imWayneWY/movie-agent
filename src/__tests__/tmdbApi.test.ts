@@ -1,9 +1,9 @@
-describe('TmdbMcpClient', () => {
-  const BASE_URL = 'https://mcp.example.com/';
+describe('TmdbApiClient', () => {
+  const BASE_URL = 'https://api.themoviedb.org/3/';
   const API_KEY = 'test-api-key';
   const REGION = 'US';
 
-  let TmdbMcpClient: any;
+  let TmdbApiClient: any;
   let client: any;
   let originalFetch: any;
 
@@ -12,17 +12,17 @@ describe('TmdbMcpClient', () => {
   });
 
   beforeEach(async () => {
-    process.env.TMDB_MCP_SERVER_URL = BASE_URL;
+    process.env.TMDB_BASE_URL = BASE_URL;
     process.env.TMDB_API_KEY = API_KEY;
     process.env.TMDB_REGION = REGION;
     jest.resetModules();
-    ({ default: TmdbMcpClient } = await import('../tmdbMcp'));
-    client = new TmdbMcpClient();
+    ({ default: TmdbApiClient } = await import('../tmdbApi'));
+    client = new TmdbApiClient();
     jest.resetAllMocks();
   });
 
   afterAll(() => {
-    delete process.env.TMDB_MCP_SERVER_URL;
+    delete process.env.TMDB_BASE_URL;
     delete process.env.TMDB_API_KEY;
     delete process.env.TMDB_REGION;
     global.fetch = originalFetch;
@@ -126,7 +126,7 @@ describe('TmdbMcpClient', () => {
 
   test('handles non-200 response', async () => {
     mockFetchFail(404, 'Not Found');
-    await expect(client.getMovieDetails(999)).rejects.toThrow(/TMDb MCP error 404/);
+    await expect(client.getMovieDetails(999)).rejects.toThrow(/TMDb API error 404/);
   });
 
   test('handles invalid JSON', async () => {

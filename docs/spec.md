@@ -9,7 +9,7 @@ The Movie Agent is an intelligent recommendation system designed to help users d
 - **In Scope:**
   - Movie recommendations only (no TV shows, documentaries, or short films)
   - Streaming availability specific to Canada
-  - Integration with TMDb MCP for movie metadata and streaming availability
+  - Integration with TMDb REST API for movie metadata and streaming availability
   - Support for multiple input parameters (all optional)
   - Natural language processing for user mood interpretation
 
@@ -76,12 +76,12 @@ The agent must return 3-5 movie recommendations with the following structure:
 ### 2.3 Core Functions
 
 #### 2.3.1 Movie Discovery
-- Query TMDb via MCP for movie metadata based on input criteria
+- Query TMDb REST API for movie metadata based on input criteria
 - Filter results to match user preferences
 - Rank movies based on relevance to input parameters
 
 #### 2.3.2 Streaming Availability Lookup
-- Query TMDb MCP for Canadian streaming availability (watch providers)
+- Query TMDb REST API for Canadian streaming availability (watch providers)
 - Filter by user-specified platforms (if provided)
 - Include only movies available on at least one streaming platform in Canada
 
@@ -106,7 +106,7 @@ The agent must return 3-5 movie recommendations with the following structure:
 
 ### 3.1 Performance
 - Response time: < 5 seconds for recommendation generation
-- API rate limiting: Respect rate limits of TMDb MCP (40 requests per 10 seconds)
+- API rate limiting: Respect TMDb REST API rate limits (e.g., 40 requests per 10 seconds)
 - Caching: Cache movie metadata and watch provider data for 24 hours to reduce API calls
 
 ### 3.2 Reliability
@@ -141,8 +141,8 @@ User Input:
 
 Agent Process:
 1. Map "excited" → ["Action", "Adventure", "Thriller"]
-2. Query TMDb MCP for popular movies in these genres
-3. Check TMDb MCP for Canadian streaming availability (watch providers)
+2. Query TMDb REST API for popular movies in these genres
+3. Check TMDb REST API for Canadian streaming availability (watch providers)
 4. Rank and select top 5 movies
 5. Return formatted recommendations
 
@@ -160,7 +160,7 @@ User Input:
 }
 
 Agent Process:
-1. Query TMDb MCP for animation movies with runtime ≤ 120 minutes
+1. Query TMDb REST API for animation movies with runtime ≤ 120 minutes
 2. Filter TMDb watch provider results for Netflix and Disney+ in Canada
 3. Return only movies available on specified platforms
 4. Rank by popularity/rating
@@ -182,8 +182,8 @@ User Input:
 
 Agent Process:
 1. Map "thoughtful" → ["Drama", "Biography", "Mystery"]
-2. Query TMDb MCP with filters: genres, year range (2020-2023), runtime (90-150 min)
-3. Check TMDb MCP watch providers for Crave and Prime Video availability in Canada
+2. Query TMDb REST API with filters: genres, year range (2020-2023), runtime (90-150 min)
+3. Check TMDb REST API watch providers for Crave and Prime Video availability in Canada
 4. Rank by relevance to mood and popularity
 5. Return top 5 recommendations
 
@@ -193,7 +193,7 @@ Expected Output:
 
 ## 5. API Integration Plan
 
-### 5.1 The Movie Database (TMDb) via MCP
+### 5.1 The Movie Database (TMDb) via REST API
 - **Purpose:** Single source for movie metadata and streaming availability
 - **Integration Method:** TMDb MCP Server
 - **Advantages:**
@@ -243,7 +243,7 @@ Expected Output:
     ▼         ▼              ▼              ▼
 ┌────────┐ ┌──────────┐  ┌──────────┐  ┌──────────┐
 │ TMDb   │ │  Cache   │  │  Mood    │  │ Ranking  │
-│  MCP   │ │  Layer   │  │  Mapper  │  │  Engine  │
+│  API   │ │  Layer   │  │  Mapper  │  │  Engine  │
 │        │ │          │  │          │  │          │
 │ • Meta │ │          │  │          │  │          │
 │ • Watch│ │          │  │          │  │          │
@@ -262,12 +262,12 @@ Expected Output:
 
 | Scenario | Handling Strategy |
 |----------|-------------------|
-| TMDb MCP unavailable | Use cached data, return error if no cache |
+| TMDb API unavailable | Use cached data, return error if no cache |
 | Watch providers unavailable | Return recommendations with "Streaming availability unknown" |
 | No matches found | Relax constraints progressively (runtime → year → genre → platform) |
 | Rate limit exceeded | Use cached results, queue request for retry |
 | Invalid API key | Return clear error message, log for admin |
-| MCP connection error | Retry with exponential backoff, fallback to cache |
+| API connection error | Retry with exponential backoff, fallback to cache |
 | Region not supported | Default to showing all available platforms with note |
 
 ## 6. Output Format Specification
@@ -615,9 +615,9 @@ LangChain Agent
 
 ### 9.1 Environment Variables
 ```bash
-# TMDb MCP Configuration
+# TMDb REST API Configuration
 TMDB_API_KEY=your_tmdb_key
-TMDB_MCP_SERVER_URL=http://localhost:3000 (if using remote MCP)
+TMDB_BASE_URL=https://api.themoviedb.org/3
 TMDB_REGION=CA (for Canadian watch providers)
 
 # LangChain Configuration

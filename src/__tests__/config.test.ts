@@ -14,7 +14,7 @@ describe('Config', () => {
 
   it('should use default region, ttl, min/max recommendations', () => {
     process.env.TMDB_API_KEY = 'test';
-    process.env.TMDB_MCP_SERVER_URL = 'http://localhost';
+    process.env.TMDB_BASE_URL = '';
     jest.resetModules();
     const cfg = require('../config').default;
     expect(cfg.TMDB_REGION).toBe('CA');
@@ -25,15 +25,16 @@ describe('Config', () => {
 
   it('should throw if TMDB_API_KEY is missing', () => {
     process.env.TMDB_API_KEY = '';
-    process.env.TMDB_MCP_SERVER_URL = 'http://localhost';
+    process.env.TMDB_BASE_URL = 'http://localhost';
     jest.resetModules();
     expect(() => require('../config')).toThrow(/TMDB_API_KEY/);
   });
 
-  it('should throw if TMDB_MCP_SERVER_URL is missing', () => {
+  it('should default TMDB_BASE_URL when missing', () => {
     process.env.TMDB_API_KEY = 'test';
-    process.env.TMDB_MCP_SERVER_URL = '';
+    delete process.env.TMDB_BASE_URL;
     jest.resetModules();
-    expect(() => require('../config')).toThrow(/TMDB_MCP_SERVER_URL/);
+    const cfg = require('../config').default;
+    expect(cfg.TMDB_BASE_URL).toBe('https://api.themoviedb.org/3');
   });
 });
