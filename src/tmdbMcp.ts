@@ -1,0 +1,136 @@
+import config from './config';
+
+export interface MovieSummary {
+  id: number;
+  title: string;
+  overview?: string;
+  release_date?: string;
+  genre_ids?: number[];
+  vote_average?: number;
+  popularity?: number;
+}
+
+export interface DiscoverMoviesParams {
+  sort_by?: string;
+  with_genres?: string; // comma-separated IDs
+  page?: number;
+  year?: number;
+  region?: string;
+}
+
+export interface DiscoverMoviesResponse {
+  page: number;
+  results: MovieSummary[];
+  total_pages: number;
+  total_results: number;
+}
+
+export interface MovieDetails extends MovieSummary {
+  genres?: { id: number; name: string }[];
+  runtime?: number;
+  tagline?: string;
+  homepage?: string;
+}
+
+export interface SearchMoviesResponse extends DiscoverMoviesResponse {}
+
+export interface Genre {
+  id: number;
+  name: string;
+}
+
+export interface GenresResponse {
+  genres: Genre[];
+}
+
+export interface WatchProvidersResponse {
+  id: number;
+  results: {
+    [countryCode: string]: {
+      link?: string;
+      flatrate?: { provider_id: number; provider_name: string }[];
+      rent?: { provider_id: number; provider_name: string }[];
+      buy?: { provider_id: number; provider_name: string }[];
+    };
+  };
+}
+
+export class TmdbMcpClient {
+  private readonly baseUrl: string;
+  private readonly apiKey: string;
+  private readonly region: string;
+
+  constructor(baseUrl?: string, apiKey?: string, region?: string) {
+    this.baseUrl = baseUrl ?? config.TMDB_MCP_SERVER_URL;
+    this.apiKey = apiKey ?? config.TMDB_API_KEY;
+    this.region = region ?? config.TMDB_REGION;
+  }
+
+  private buildUrl(path: string, params?: Record<string, string | number | undefined>): string {
+    const url = new URL(path, this.baseUrl.endsWith('/') ? this.baseUrl : this.baseUrl + '/');
+    url.searchParams.set('api_key', this.apiKey);
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        if (v !== undefined && v !== null) {
+          url.searchParams.set(k, String(v));
+        }
+      }
+    }
+    return url.toString();
+  }
+
+  private async doFetch<T>(url: string): Promise<T> {
+    let resp: Response;
+    try {
+      resp = await fetch(url, {
+        headers: { 'Accept': 'application/json' }
+      });
+    } catch (err: any) {
+      throw new Error(`Network error calling TMDb MCP: ${err?.message ?? String(err)}`);
+    }
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      throw new Error(`TMDb MCP error ${resp.status}: ${text || resp.statusText}`);
+    }
+
+    try {
+      return (await resp.json()) as T;
+    } catch (err: any) {
+      throw new Error(`Invalid JSON from TMDb MCP: ${err?.message ?? String(err)}`);
+    }
+  }
+
+  async discoverMovies(params: DiscoverMoviesParams = {}): Promise<DiscoverMoviesResponse> {
+    const url = this.buildUrl('discover/movie', {
+      sort_by: params.sort_by,
+      with_genres: params.with_genres,
+      page: params.page,
+      year: params.year,
+      region: params.region ?? this.region,
+    });
+    return this.doFetch<DiscoverMoviesResponse>(url);
+  }
+
+  async getMovieDetails(movieId: number): Promise<MovieDetails> {
+    const url = this.buildUrl(`movie/${movieId}`, { region: this.region });
+    return this.doFetch<MovieDetails>(url);
+  }
+
+  async searchMovies(query: string, page?: number): Promise<SearchMoviesResponse> {
+    const url = this.buildUrl('search/movie', { query, page, region: this.region });
+    return this.doFetch<SearchMoviesResponse>(url);
+  }
+
+  async getGenres(): Promise<GenresResponse> {
+    const url = this.buildUrl('genre/movie/list', { region: this.region });
+    return this.doFetch<GenresResponse>(url);
+  }
+
+  async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+    const url = this.buildUrl(`movie/${movieId}/watch/providers`);
+    return this.doFetch<WatchProvidersResponse>(url);
+  }
+}
+
+export default TmdbMcpClient;
