@@ -11,7 +11,8 @@ const config: Config = {
     '!src/**/__tests__/**'
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  verbose: true
+  verbose: true,
+  setupFiles: ['<rootDir>/jest.setup.js']
 };
 
 export default config;
