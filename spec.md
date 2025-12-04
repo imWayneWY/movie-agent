@@ -620,7 +620,18 @@ TMDB_API_KEY=your_tmdb_key
 TMDB_MCP_SERVER_URL=http://localhost:3000 (if using remote MCP)
 TMDB_REGION=CA (for Canadian watch providers)
 
-# LangChain Configuration
+# LLM Provider Selection
+LLM_PROVIDER=gemini  # Options: gemini, azure
+
+# Gemini (Google) API Key (for testing/dev)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Azure OpenAI (for production)
+AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=your_deployment_name
+
+# (Optional) OpenAI API Key (if needed for fallback)
 OPENAI_API_KEY=your_openai_key (for LangChain LLM)
 
 # Application Settings

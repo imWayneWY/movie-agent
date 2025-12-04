@@ -36,6 +36,11 @@ Finally, it provides a complete series of code-generation LLM prompts; each prom
   - Integration tests: TMDb MCP calls (mockable adapter)
   - E2E tests: agent pipeline returning 3–5 structured recommendations
   - Performance tests: caching effectiveness and <5s response
+- LLM Provider Selection
+  - Use `LLM_PROVIDER=gemini` for Google Gemini (testing/dev)
+  - Use `LLM_PROVIDER=azure` for Azure OpenAI (production)
+  - Configure `GEMINI_API_KEY`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_DEPLOYMENT` as needed
+  - See `.env.example` and spec for details
 
 ---
 

@@ -1,0 +1,68 @@
+// src/__tests__/providers.test.ts
+import { getCanadianProviders } from "../providers";
+import TmdbApiClient from "../tmdbApi";
+
+describe("getCanadianProviders", () => {
+  const movieId = 12345;
+  let mockClient: jest.Mocked<TmdbApiClient>;
+
+  beforeEach(() => {
+    mockClient = {
+      getWatchProviders: jest.fn(),
+    } as any;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("returns empty array if no providers", async () => {
+    mockClient.getWatchProviders.mockResolvedValueOnce({ id: movieId, results: {} });
+    const result = await getCanadianProviders(movieId, "CA", mockClient);
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array if no flatrate providers", async () => {
+    mockClient.getWatchProviders.mockResolvedValueOnce({
+      id: movieId,
+      results: { CA: { rent: [], buy: [] } },
+    });
+    const result = await getCanadianProviders(movieId, "CA", mockClient);
+    expect(result).toEqual([]);
+  });
+
+  it("returns mapped platforms for flatrate providers", async () => {
+    mockClient.getWatchProviders.mockResolvedValueOnce({
+      id: movieId,
+      results: {
+        CA: {
+          flatrate: [
+            { provider_id: 1, provider_name: "Netflix" },
+            { provider_id: 2, provider_name: "Amazon Prime Video" },
+            { provider_id: 3, provider_name: "Disney Plus" },
+            { provider_id: 99, provider_name: "Unknown Service" },
+            { provider_id: 1, provider_name: "Netflix" }, // duplicate
+          ],
+        },
+      },
+    });
+    const result = await getCanadianProviders(movieId, "CA", mockClient);
+    expect(result).toEqual([
+      "Netflix",
+      "Prime Video",
+      "Disney+",
+    ]);
+  });
+
+  it("handles missing region gracefully", async () => {
+    mockClient.getWatchProviders.mockResolvedValueOnce({ id: movieId, results: { US: {} } });
+    const result = await getCanadianProviders(movieId, "CA", mockClient);
+    expect(result).toEqual([]);
+  });
+
+  it("handles fetch errors gracefully", async () => {
+    mockClient.getWatchProviders.mockRejectedValueOnce(new Error("Network error"));
+    const result = await getCanadianProviders(movieId, "CA", mockClient);
+    expect(result).toEqual([]);
+  });
+});
