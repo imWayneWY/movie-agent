@@ -1,0 +1,209 @@
+#!/usr/bin/env node
+
+// bin/movie-agent
+const path = require('path');
+const fs = require('fs');
+
+/**
+ * Parse command-line arguments
+ */
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const input = {};
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    const nextArg = args[i + 1];
+
+    if (arg.startsWith('--') && nextArg && !nextArg.startsWith('--')) {
+      const key = arg.substring(2);
+      
+      switch (key) {
+        case 'mood':
+          input.mood = nextArg;
+          i++;
+          break;
+        
+        case 'platforms':
+          // Support comma-separated platforms
+          input.platforms = nextArg.split(',').map(p => p.trim());
+          i++;
+          break;
+        
+        case 'genre':
+          // Support comma-separated genres
+          const genres = nextArg.split(',').map(g => g.trim());
+          input.genre = genres.length === 1 ? genres[0] : genres;
+          i++;
+          break;
+        
+        case 'runtimeMax':
+          if (!input.runtime) input.runtime = {};
+          input.runtime.max = parseInt(nextArg, 10);
+          i++;
+          break;
+        
+        case 'runtimeMin':
+          if (!input.runtime) input.runtime = {};
+          input.runtime.min = parseInt(nextArg, 10);
+          i++;
+          break;
+        
+        case 'year':
+          input.releaseYear = parseInt(nextArg, 10);
+          i++;
+          break;
+        
+        case 'yearFrom':
+          if (typeof input.releaseYear !== 'object') {
+            input.releaseYear = {};
+          }
+          input.releaseYear.from = parseInt(nextArg, 10);
+          i++;
+          break;
+        
+        case 'yearTo':
+          if (typeof input.releaseYear !== 'object') {
+            input.releaseYear = {};
+          }
+          input.releaseYear.to = parseInt(nextArg, 10);
+          i++;
+          break;
+        
+        default:
+          console.error(`Unknown flag: ${arg}`);
+          printUsage();
+          process.exit(1);
+      }
+    } else if (arg === '--help' || arg === '-h') {
+      printUsage();
+      process.exit(0);
+    }
+  }
+
+  return input;
+}
+
+/**
+ * Print usage information
+ */
+function printUsage() {
+  console.log(`
+Usage: movie-agent [options]
+
+Options:
+  --mood <string>           User's mood (e.g., "happy", "excited", "thoughtful")
+  --platforms <list>        Comma-separated list of platforms (e.g., "Netflix,Prime Video")
+  --genre <list>            Genre or comma-separated genres (e.g., "Action" or "Action,Comedy")
+  --runtimeMax <number>     Maximum runtime in minutes
+  --runtimeMin <number>     Minimum runtime in minutes
+  --year <number>           Specific release year
+  --yearFrom <number>       Release year range start
+  --yearTo <number>         Release year range end
+  --help, -h                Show this help message
+
+Examples:
+  movie-agent --mood excited --platforms Netflix
+  movie-agent --genre Action,Thriller --runtimeMax 120
+  movie-agent --mood relaxed --yearFrom 2020 --yearTo 2023
+`);
+}
+
+/**
+ * Format recommendations for human-readable display
+ */
+function formatOutput(response) {
+  let output = '\n🎬 Movie Recommendations for You\n\n';
+
+  response.recommendations.forEach((movie, index) => {
+    output += `${index + 1}. **${movie.title}** (${movie.releaseYear}) • ${movie.runtime} min\n`;
+    output += `   Genres: ${movie.genres.join(', ')}\n\n`;
+    output += `   ${movie.description}\n\n`;
+    
+    // Format streaming platforms
+    const availablePlatforms = movie.streamingPlatforms
+      .filter(p => p.available)
+      .map(p => p.name);
+    
+    if (availablePlatforms.length > 0) {
+      output += `   📺 Available on: ${availablePlatforms.join(', ')}\n`;
+    } else {
+      output += `   📺 No streaming availability found\n`;
+    }
+    
+    output += `   ✨ Why: ${movie.matchReason}\n`;
+    
+    if (index < response.recommendations.length - 1) {
+      output += '\n───────────────────────────────────────────────────────────\n\n';
+    }
+  });
+
+  return output;
+}
+
+/**
+ * Main execution
+ */
+async function main() {
+  try {
+    // Parse arguments first (for --help)
+    const args = process.argv.slice(2);
+    if (args.includes('--help') || args.includes('-h')) {
+      printUsage();
+      process.exit(0);
+    }
+
+    // Check if .env file exists and load it
+    const envPath = path.resolve(__dirname, '../.env.development');
+    if (fs.existsSync(envPath)) {
+      require('dotenv').config({ path: envPath });
+    }
+
+    // Check for TMDb API key
+    if (!process.env.TMDB_API_KEY) {
+      console.error(`
+❌ Error: TMDb API key not found
+
+Please set the TMDB_API_KEY environment variable:
+  export TMDB_API_KEY=your_api_key_here
+
+Or create a .env.development file with:
+  TMDB_API_KEY=your_api_key_here
+`);
+      process.exit(1);
+    }
+
+    // Now it's safe to load the agent module
+    const { MovieAgent } = require('../dist/agent');
+
+    const input = parseArgs();
+
+    // Show help if no arguments provided
+    if (Object.keys(input).length === 0) {
+      printUsage();
+      process.exit(0);
+    }
+
+    console.log('\n🔍 Finding movie recommendations...\n');
+
+    const agent = new MovieAgent();
+    const response = await agent.getRecommendations(input);
+
+    const output = formatOutput(response);
+    console.log(output);
+
+  } catch (error) {
+    console.error('\n❌ Error:', error.message);
+    
+    if (error.message.includes('API') || error.message.includes('network')) {
+      console.error('\nPlease check your internet connection and TMDb API key.');
+    } else if (error.message.includes('Invalid') || error.message.includes('validation')) {
+      console.error('\nPlease check your input parameters and try again.');
+      console.error('Use --help for usage information.');
+    }
+    
+    process.exit(1);
+  }
+}
+
+main();
