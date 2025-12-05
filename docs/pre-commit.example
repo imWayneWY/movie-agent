@@ -1,0 +1,42 @@
+#!/bin/sh
+# Pre-commit hook example for Movie Agent
+# To install: cp docs/pre-commit.example .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+echo "Running pre-commit checks..."
+
+# Run type check
+echo "1. Type checking..."
+npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ Type check failed. Commit aborted."
+  exit 1
+fi
+
+# Run linter
+echo "2. Linting..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ Linting failed. Commit aborted."
+  echo "   Run 'npm run lint:fix' to automatically fix issues."
+  exit 1
+fi
+
+# Run format check
+echo "3. Format checking..."
+npm run format:check
+if [ $? -ne 0 ]; then
+  echo "❌ Format check failed. Commit aborted."
+  echo "   Run 'npm run format' to automatically format code."
+  exit 1
+fi
+
+# Run unit tests
+echo "4. Running unit tests..."
+npm run test:unit
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Commit aborted."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+exit 0

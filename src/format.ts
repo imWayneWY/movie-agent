@@ -30,7 +30,7 @@ export function buildDescription(overview: string): string {
   }
 
   // Truncate to max words and try to end at a sentence boundary
-  let truncated = words.slice(0, maxWords).join(' ');
+  const truncated = words.slice(0, maxWords).join(' ');
   
   // Find the last sentence-ending punctuation within our limit
   const lastPeriod = truncated.lastIndexOf('.');

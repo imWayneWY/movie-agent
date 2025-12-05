@@ -53,18 +53,66 @@ MIN_RECOMMENDATIONS=3
 
 ## Usage
 
-```bash
-# Run the agent
-npm start
+### Quick Start
 
-# Run in development mode
+```bash
+# Run the agent in development mode
 npm run dev
 
-# Run tests
-npm test
+# Run the agent in production mode
+npm start
 
-# Run tests with coverage
-npm run test:coverage
+# Build for production
+npm run build
+npm run start:prod
+```
+
+### Programmatic Usage
+
+```javascript
+import { MovieAgent } from 'movie-agent';
+
+const agent = new MovieAgent();
+
+// Get recommendations based on mood
+const recommendations = await agent.getRecommendations({
+  mood: 'excited',
+  platforms: ['Netflix', 'Prime Video'],
+  runtime: { max: 150 },
+  releaseYear: { from: 2020, to: 2024 }
+});
+
+console.log(recommendations);
+```
+
+### API Examples
+
+```javascript
+// Example 1: Simple mood-based search
+await agent.getRecommendations({
+  mood: 'happy'
+});
+
+// Example 2: Genre-specific with platform filter
+await agent.getRecommendations({
+  genre: 'Action',
+  platforms: ['Disney+']
+});
+
+// Example 3: Complex filtering
+await agent.getRecommendations({
+  mood: 'adventurous',
+  platforms: ['Netflix', 'Prime Video', 'Crave'],
+  runtime: { min: 90, max: 150 },
+  releaseYear: 2023
+});
+
+// Example 4: Multiple genres
+await agent.getRecommendations({
+  genre: ['Comedy', 'Romance'],
+  platforms: ['Netflix'],
+  runtime: { max: 120 }
+});
 ```
 
 ## Architecture
@@ -105,34 +153,155 @@ console.log(recommendations);
 
 ## Development
 
+### Code Quality
+
 ```bash
+# Type checking
+npm run type-check
+
 # Lint code
 npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
 
 # Format code
 npm run format
 
-# Type check
-npm run type-check
+# Check formatting without modifying files
+npm run format:check
+
+# Run all validations (type-check + lint + coverage)
+npm run validate
+```
+
+### Building
+
+```bash
+# Clean build artifacts
+npm run clean
+
+# Build TypeScript to JavaScript
+npm run build
+
+# Clean and build (runs validation first)
+npm run prebuild && npm run build
 ```
 
 ## Testing
 
-The project follows Test-Driven Development (TDD) practices:
+The project follows Test-Driven Development (TDD) practices with comprehensive test coverage.
+
+### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (unit + E2E)
 npm test
 
-# Run unit tests
+# Run only unit tests (excludes E2E and live integration tests)
 npm run test:unit
-
-# Run integration tests
-npm run test:integration
 
 # Run E2E tests
 npm run test:e2e
+
+# Run live integration tests (requires API keys)
+npm run test:integration
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests in watch mode (for development)
+npm run test:watch
+
+# Run tests in CI mode (with coverage)
+npm run test:ci
 ```
+
+### Test Structure
+
+- **Unit Tests** (`src/__tests__/*.test.ts`) - Test individual modules and functions
+- **E2E Tests** (`src/__tests__/e2e.test.ts`) - Test complete recommendation pipeline
+- **Integration Tests** (`src/__tests__/*.live.test.ts`) - Test with real APIs (requires credentials)
+
+### Coverage Requirements
+
+The project enforces minimum 90% code coverage across:
+- Branches: 90%
+- Functions: 90%
+- Lines: 90%
+- Statements: 90%
+
+View coverage report after running tests:
+```bash
+npm run test:coverage
+open coverage/lcov-report/index.html
+```
+
+## CI/CD Workflow
+
+### GitHub Actions Example
+
+```yaml
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm run test:ci
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+```
+
+### Pre-commit Workflow
+
+Recommended pre-commit hook (`.git/hooks/pre-commit`):
+```bash
+#!/bin/sh
+npm run type-check && npm run lint && npm run test:unit
+```
+
+### Development Workflow
+
+1. **Create a new branch**
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+
+2. **Make changes with TDD**
+   ```bash
+   # Write tests first
+   npm run test:watch
+   # Implement feature
+   # Ensure tests pass
+   ```
+
+3. **Validate before commit**
+   ```bash
+   npm run validate
+   ```
+
+4. **Commit and push**
+   ```bash
+   git add .
+   git commit -m "feat: your feature description"
+   git push origin feature/your-feature
+   ```
+
+5. **Create Pull Request**
+   - Ensure CI passes
+   - Request code review
+   - Merge when approved
 
 ## Contributing
 
