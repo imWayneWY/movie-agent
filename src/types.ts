@@ -87,3 +87,19 @@ export interface AgentResponse {
   /** Request metadata */
   metadata: ResponseMetadata;
 }
+
+/**
+ * Error response structure for handling failures
+ */
+export interface ErrorResponse {
+  /** Error indicator */
+  error: true;
+  /** Error type category */
+  errorType: 'MCP_UNAVAILABLE' | 'INVALID_API_KEY' | 'RATE_LIMIT_EXCEEDED' | 'VALIDATION_ERROR' | 'NO_RESULTS' | 'UNKNOWN_ERROR';
+  /** Human-readable error message */
+  message: string;
+  /** ISO timestamp of when the error occurred */
+  timestamp: string;
+  /** Optional details for debugging */
+  details?: string;
+}

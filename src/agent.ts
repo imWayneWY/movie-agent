@@ -1,5 +1,5 @@
 // src/agent.ts
-import { UserInput, AgentResponse, MovieRecommendation, StreamingPlatform } from './types';
+import { UserInput, AgentResponse, MovieRecommendation, StreamingPlatform, ErrorResponse } from './types';
 import { validatePlatforms, validateRuntime, validateYear, validateYearRange } from './validate';
 import { moodToGenres } from './mood';
 import { discoverMovies, DiscoverInput } from './discover';
@@ -36,9 +36,9 @@ export class MovieAgent {
   /**
    * Gets movie recommendations based on user input
    * @param input - User input with mood, platforms, genres, runtime, and year preferences
-   * @returns Promise resolving to structured agent response with 3-5 recommendations
+   * @returns Promise resolving to structured agent response with 3-5 recommendations or error response
    */
-  async getRecommendations(input: UserInput): Promise<AgentResponse> {
+  async getRecommendations(input: UserInput): Promise<AgentResponse | ErrorResponse> {
     try {
       this.logger('Starting recommendation pipeline');
 
@@ -57,7 +57,7 @@ export class MovieAgent {
       this.logger(`Found ${candidates.length} candidate movies`);
 
       if (candidates.length === 0) {
-        throw new Error('No movies found matching the criteria');
+        return this.createErrorResponse('NO_RESULTS', 'No movies found matching the criteria');
       }
 
       // Step 4: Fetch watch providers for each candidate (region CA)
@@ -71,7 +71,7 @@ export class MovieAgent {
       this.logger(`${filtered.length} movies passed filters`);
 
       if (filtered.length === 0) {
-        throw new Error('No movies match the specified filters (platforms, runtime, year)');
+        return this.createErrorResponse('NO_RESULTS', 'No movies match the specified filters (platforms, runtime, year)');
       }
 
       // Step 6: Rank and select top 3-5 movies
@@ -88,8 +88,84 @@ export class MovieAgent {
       return response;
     } catch (error) {
       this.logger(`Error in recommendation pipeline: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+      return this.handleError(error);
     }
+  }
+
+  /**
+   * Creates a structured error response
+   * @param errorType - The type of error
+   * @param message - Human-readable error message
+   * @param details - Optional details for debugging
+   * @returns ErrorResponse object
+   */
+  private createErrorResponse(
+    errorType: ErrorResponse['errorType'],
+    message: string,
+    details?: string
+  ): ErrorResponse {
+    return {
+      error: true,
+      errorType,
+      message,
+      timestamp: new Date().toISOString(),
+      details,
+    };
+  }
+
+  /**
+   * Handles errors and converts them to structured error responses
+   * @param error - The error to handle
+   * @returns ErrorResponse object
+   */
+  private handleError(error: unknown): ErrorResponse {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Check for invalid API key errors
+    if (errorMessage.includes('401') || errorMessage.includes('Invalid API key') || errorMessage.includes('authentication')) {
+      return this.createErrorResponse(
+        'INVALID_API_KEY',
+        'Invalid or missing TMDB API key',
+        errorMessage
+      );
+    }
+    
+    // Check for rate limit errors
+    if (errorMessage.includes('429') || errorMessage.includes('rate limit') || errorMessage.includes('Too Many Requests')) {
+      return this.createErrorResponse(
+        'RATE_LIMIT_EXCEEDED',
+        'TMDB API rate limit exceeded. Please try again later.',
+        errorMessage
+      );
+    }
+    
+    // Check for MCP/network errors
+    if (errorMessage.includes('Network error') || errorMessage.includes('ECONNREFUSED') || 
+        errorMessage.includes('ENOTFOUND') || errorMessage.includes('timeout')) {
+      return this.createErrorResponse(
+        'MCP_UNAVAILABLE',
+        'Unable to connect to TMDB API service',
+        errorMessage
+      );
+    }
+    
+    // Check for validation errors - be more comprehensive
+    if (errorMessage.includes('Invalid') || errorMessage.includes('must be') || 
+        errorMessage.includes('cannot be greater than') || errorMessage.includes('Year range invalid') ||
+        errorMessage.includes('runtime') || errorMessage.includes('year')) {
+      return this.createErrorResponse(
+        'VALIDATION_ERROR',
+        errorMessage,
+        errorMessage
+      );
+    }
+    
+    // Default to unknown error
+    return this.createErrorResponse(
+      'UNKNOWN_ERROR',
+      'An unexpected error occurred while processing your request',
+      errorMessage
+    );
   }
 
   /**

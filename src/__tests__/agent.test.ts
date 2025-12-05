@@ -1,7 +1,12 @@
 // src/__tests__/agent.test.ts
 import { MovieAgent } from '../agent';
-import { UserInput, AgentResponse } from '../types';
+import { UserInput, AgentResponse, ErrorResponse } from '../types';
 import TmdbApiClient, { MovieDetails, DiscoverMoviesResponse, WatchProvidersResponse } from '../tmdbApi';
+
+// Type guard to check if response is a successful AgentResponse
+function isAgentResponse(response: AgentResponse | ErrorResponse): response is AgentResponse {
+  return !('error' in response);
+}
 
 // Mock TMDb API client
 class MockTmdbClient extends TmdbApiClient {
@@ -244,9 +249,17 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       // Assert response structure
       expect(response).toBeDefined();
+      
+      // Type guard to ensure successful response
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error: ${(response as ErrorResponse).errorType} - ${(response as ErrorResponse).message}`);
+        return; // Never reached but helps TypeScript
+      }
+      
       expect(response.recommendations).toBeDefined();
       expect(response.metadata).toBeDefined();
 
@@ -308,6 +321,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
@@ -326,6 +340,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
@@ -346,6 +361,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
@@ -364,6 +380,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
@@ -382,6 +399,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
@@ -399,6 +417,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
@@ -416,6 +435,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       response.recommendations.forEach(rec => {
         expect(rec.matchReason).toBeTruthy();
@@ -454,43 +474,75 @@ describe('MovieAgent', () => {
       expect(logMessages).toContain('Pipeline completed successfully');
     });
 
-    it('should throw error for invalid platforms', async () => {
+    it('should return error for invalid platforms', async () => {
       const input: UserInput = {
         mood: 'happy',
         platforms: ['InvalidPlatform'],
       };
 
-      await expect(agent.getRecommendations(input)).rejects.toThrow('Invalid platform(s): InvalidPlatform');
+      const response = await agent.getRecommendations(input);
+      
+      // Should return ErrorResponse instead of throwing
+      if (isAgentResponse(response)) {
+        fail('Expected ErrorResponse but got AgentResponse');
+      }
+      
+      expect(response.errorType).toBe('VALIDATION_ERROR');
+      expect(response.message).toContain('Invalid platform');
     });
 
-    it('should throw error for invalid runtime constraints', async () => {
+    it('should return error for invalid runtime constraints', async () => {
       const input: UserInput = {
         mood: 'happy',
         platforms: ['Netflix'],
         runtime: { min: 120, max: 90 },
       };
 
-      await expect(agent.getRecommendations(input)).rejects.toThrow('min runtime (120) cannot be greater than max runtime (90)');
+      const response = await agent.getRecommendations(input);
+      
+      // Should return ErrorResponse instead of throwing
+      if (isAgentResponse(response)) {
+        fail('Expected ErrorResponse but got AgentResponse');
+      }
+      
+      expect(response.errorType).toBe('VALIDATION_ERROR');
+      expect(response.message).toContain('runtime');
     });
 
-    it('should throw error for invalid year', async () => {
+    it('should return error for invalid year', async () => {
       const input: UserInput = {
         mood: 'happy',
         platforms: ['Netflix'],
         releaseYear: 3000,
       };
 
-      await expect(agent.getRecommendations(input)).rejects.toThrow('Invalid year: 3000');
+      const response = await agent.getRecommendations(input);
+      
+      // Should return ErrorResponse instead of throwing
+      if (isAgentResponse(response)) {
+        fail('Expected ErrorResponse but got AgentResponse');
+      }
+      
+      expect(response.errorType).toBe('VALIDATION_ERROR');
+      expect(response.message).toContain('Invalid year');
     });
 
-    it('should throw error when no movies match filters', async () => {
+    it('should return error when no movies match filters', async () => {
       const input: UserInput = {
         mood: 'happy',
         platforms: ['Netflix'],
         runtime: { min: 300, max: 400 }, // No movies have this runtime
       };
 
-      await expect(agent.getRecommendations(input)).rejects.toThrow('No movies match the specified filters');
+      const response = await agent.getRecommendations(input);
+      
+      // Should return ErrorResponse instead of throwing
+      if (isAgentResponse(response)) {
+        fail('Expected ErrorResponse but got AgentResponse');
+      }
+      
+      expect(response.errorType).toBe('NO_RESULTS');
+      expect(response.message).toContain('No movies');
     });
 
     it('should handle multiple genre preferences', async () => {
@@ -500,6 +552,7 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
@@ -518,7 +571,9 @@ describe('MovieAgent', () => {
       };
 
       const response1 = await agent.getRecommendations(input);
+      if (!isAgentResponse(response1)) fail(`Expected AgentResponse but got error: ${response1.errorType}`);
       const response2 = await agent.getRecommendations(input);
+      if (!isAgentResponse(response2)) fail(`Expected AgentResponse but got error: ${response2.errorType}`);
 
       // Results should be identical
       expect(response1.recommendations.length).toBe(response2.recommendations.length);
