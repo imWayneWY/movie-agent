@@ -1,5 +1,7 @@
 import TmdbApiClient, { DiscoverMoviesParams, DiscoverMoviesResponse } from './tmdbApi';
 import { moodToGenres } from './mood';
+import { getCache, generateDiscoverCacheKey } from './cache';
+import config from './config';
 
 /**
  * Input for building discover parameters.
@@ -134,5 +136,21 @@ export async function discoverMovies(
 ): Promise<DiscoverMoviesResponse> {
   const client = apiClient ?? new TmdbApiClient();
   const params = buildDiscoverParams(input);
-  return client.discoverMovies(params);
+  
+  // Check cache first
+  const cache = getCache(config.CACHE_TTL);
+  const cacheKey = generateDiscoverCacheKey(params);
+  const cachedResult = cache.get<DiscoverMoviesResponse>(cacheKey);
+  
+  if (cachedResult) {
+    return cachedResult;
+  }
+  
+  // Cache miss - fetch from API
+  const result = await client.discoverMovies(params);
+  
+  // Store in cache
+  cache.set(cacheKey, result);
+  
+  return result;
 }

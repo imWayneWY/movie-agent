@@ -1,6 +1,7 @@
 // src/__tests__/providers.test.ts
 import { getCanadianProviders } from "../providers";
 import TmdbApiClient from "../tmdbApi";
+import { resetCache } from "../cache";
 
 describe("getCanadianProviders", () => {
   const movieId = 12345;
@@ -10,6 +11,7 @@ describe("getCanadianProviders", () => {
     mockClient = {
       getWatchProviders: jest.fn(),
     } as any;
+    resetCache(); // Clear cache between tests
   });
 
   afterEach(() => {

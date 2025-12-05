@@ -224,12 +224,18 @@ describe('buildDiscoverParams', () => {
 describe('discoverMovies', () => {
   let discoverMovies: any;
   let TmdbApiClient: any;
+  let resetCache: any;
 
   beforeAll(async () => {
     process.env.TMDB_API_KEY = 'test-api-key';
     jest.resetModules();
     ({ discoverMovies } = await import('../discover'));
     ({ default: TmdbApiClient } = await import('../tmdbApi'));
+    ({ resetCache } = await import('../cache'));
+  });
+
+  beforeEach(() => {
+    resetCache(); // Clear cache between tests
   });
 
   afterAll(() => {
