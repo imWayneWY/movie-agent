@@ -1,6 +1,17 @@
 // src/agent.ts
-import { UserInput, AgentResponse, MovieRecommendation, StreamingPlatform, ErrorResponse } from './types';
-import { validatePlatforms, validateRuntime, validateYear, validateYearRange } from './validate';
+import {
+  UserInput,
+  AgentResponse,
+  MovieRecommendation,
+  StreamingPlatform,
+  ErrorResponse,
+} from './types';
+import {
+  validatePlatforms,
+  validateRuntime,
+  validateYear,
+  validateYearRange,
+} from './validate';
 import { moodToGenres } from './mood';
 import { discoverMovies, DiscoverInput } from './discover';
 import TmdbApiClient, { MovieDetails } from './tmdbApi';
@@ -30,7 +41,8 @@ export class MovieAgent {
    */
   constructor(tmdbClient?: TmdbApiClient, logger?: (message: string) => void) {
     this.tmdbClient = tmdbClient ?? new TmdbApiClient();
-    this.logger = logger ?? ((message: string) => console.log(`[MovieAgent] ${message}`));
+    this.logger =
+      logger ?? ((message: string) => console.log(`[MovieAgent] ${message}`));
   }
 
   /**
@@ -38,7 +50,9 @@ export class MovieAgent {
    * @param input - User input with mood, platforms, genres, runtime, and year preferences
    * @returns Promise resolving to structured agent response with 3-5 recommendations or error response
    */
-  async getRecommendations(input: UserInput): Promise<AgentResponse | ErrorResponse> {
+  async getRecommendations(
+    input: UserInput
+  ): Promise<AgentResponse | ErrorResponse> {
     try {
       this.logger('Starting recommendation pipeline');
 
@@ -57,7 +71,10 @@ export class MovieAgent {
       this.logger(`Found ${candidates.length} candidate movies`);
 
       if (candidates.length === 0) {
-        return this.createErrorResponse('NO_RESULTS', 'No movies found matching the criteria');
+        return this.createErrorResponse(
+          'NO_RESULTS',
+          'No movies found matching the criteria'
+        );
       }
 
       // Step 4: Fetch watch providers for each candidate (region CA)
@@ -71,7 +88,10 @@ export class MovieAgent {
       this.logger(`${filtered.length} movies passed filters`);
 
       if (filtered.length === 0) {
-        return this.createErrorResponse('NO_RESULTS', 'No movies match the specified filters (platforms, runtime, year)');
+        return this.createErrorResponse(
+          'NO_RESULTS',
+          'No movies match the specified filters (platforms, runtime, year)'
+        );
       }
 
       // Step 6: Rank and select top 3-5 movies
@@ -82,12 +102,16 @@ export class MovieAgent {
       // Step 7: Format structured output with metadata
       this.logger('Step 7: Formatting output');
       const recommendations = this.formatRecommendations(topMovies, input);
-      const response = formatResponse(recommendations, { inputParameters: input });
+      const response = formatResponse(recommendations, {
+        inputParameters: input,
+      });
 
       this.logger('Pipeline completed successfully');
       return response;
     } catch (error) {
-      this.logger(`Error in recommendation pipeline: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger(
+        `Error in recommendation pipeline: ${error instanceof Error ? error.message : String(error)}`
+      );
       return this.handleError(error);
     }
   }
@@ -120,46 +144,63 @@ export class MovieAgent {
    */
   private handleError(error: unknown): ErrorResponse {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     // Check for invalid API key errors
-    if (errorMessage.includes('401') || errorMessage.includes('Invalid API key') || errorMessage.includes('authentication')) {
+    if (
+      errorMessage.includes('401') ||
+      errorMessage.includes('Invalid API key') ||
+      errorMessage.includes('authentication')
+    ) {
       return this.createErrorResponse(
         'INVALID_API_KEY',
         'Invalid or missing TMDB API key',
         errorMessage
       );
     }
-    
+
     // Check for rate limit errors
-    if (errorMessage.includes('429') || errorMessage.includes('rate limit') || errorMessage.includes('Too Many Requests')) {
+    if (
+      errorMessage.includes('429') ||
+      errorMessage.includes('rate limit') ||
+      errorMessage.includes('Too Many Requests')
+    ) {
       return this.createErrorResponse(
         'RATE_LIMIT_EXCEEDED',
         'TMDB API rate limit exceeded. Please try again later.',
         errorMessage
       );
     }
-    
+
     // Check for MCP/network errors
-    if (errorMessage.includes('Network error') || errorMessage.includes('ECONNREFUSED') || 
-        errorMessage.includes('ENOTFOUND') || errorMessage.includes('timeout')) {
+    if (
+      errorMessage.includes('Network error') ||
+      errorMessage.includes('ECONNREFUSED') ||
+      errorMessage.includes('ENOTFOUND') ||
+      errorMessage.includes('timeout')
+    ) {
       return this.createErrorResponse(
         'MCP_UNAVAILABLE',
         'Unable to connect to TMDB API service',
         errorMessage
       );
     }
-    
+
     // Check for validation errors - be more comprehensive
-    if (errorMessage.includes('Invalid') || errorMessage.includes('must be') || 
-        errorMessage.includes('cannot be greater than') || errorMessage.includes('Year range invalid') ||
-        errorMessage.includes('runtime') || errorMessage.includes('year')) {
+    if (
+      errorMessage.includes('Invalid') ||
+      errorMessage.includes('must be') ||
+      errorMessage.includes('cannot be greater than') ||
+      errorMessage.includes('Year range invalid') ||
+      errorMessage.includes('runtime') ||
+      errorMessage.includes('year')
+    ) {
       return this.createErrorResponse(
         'VALIDATION_ERROR',
         errorMessage,
         errorMessage
       );
     }
-    
+
     // Default to unknown error
     return this.createErrorResponse(
       'UNKNOWN_ERROR',
@@ -220,7 +261,10 @@ export class MovieAgent {
    * @param genres - Resolved genres
    * @returns Array of movie summaries
    */
-  private async discoverCandidates(input: UserInput, genres: string[]): Promise<MovieDetails[]> {
+  private async discoverCandidates(
+    input: UserInput,
+    genres: string[]
+  ): Promise<MovieDetails[]> {
     // Build discover input
     const discoverInput: DiscoverInput = {
       genres: genres.length > 0 ? genres : undefined,
@@ -264,14 +308,20 @@ export class MovieAgent {
    * @param candidates - Array of movie details
    * @returns Array of movies with platform information
    */
-  private async fetchWatchProviders(candidates: MovieDetails[]): Promise<MovieWithProviders[]> {
+  private async fetchWatchProviders(
+    candidates: MovieDetails[]
+  ): Promise<MovieWithProviders[]> {
     const moviesWithProviders: MovieWithProviders[] = [];
 
     // Fetch providers for each movie
     for (const movie of candidates) {
       try {
-        const platforms = await getCanadianProviders(movie.id, 'CA', this.tmdbClient);
-        
+        const platforms = await getCanadianProviders(
+          movie.id,
+          'CA',
+          this.tmdbClient
+        );
+
         // Only include movies with at least one provider
         if (platforms.length > 0) {
           moviesWithProviders.push({
@@ -281,7 +331,9 @@ export class MovieAgent {
         }
       } catch (error) {
         // Log error but continue with other movies
-        this.logger(`Failed to fetch providers for movie ${movie.id}: ${error instanceof Error ? error.message : String(error)}`);
+        this.logger(
+          `Failed to fetch providers for movie ${movie.id}: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     }
 
@@ -294,7 +346,10 @@ export class MovieAgent {
    * @param input - User input
    * @returns Filtered movies
    */
-  private applyFilters(movies: MovieWithProviders[], input: UserInput): MovieWithProviders[] {
+  private applyFilters(
+    movies: MovieWithProviders[],
+    input: UserInput
+  ): MovieWithProviders[] {
     const filterOptions: FilterOptions = {};
 
     // Add platform filter if specified
@@ -328,11 +383,18 @@ export class MovieAgent {
    * @param input - User input
    * @returns Top 3-5 movies
    */
-  private rankAndSelect(movies: MovieWithProviders[], input: UserInput): MovieWithProviders[] {
+  private rankAndSelect(
+    movies: MovieWithProviders[],
+    input: UserInput
+  ): MovieWithProviders[] {
     // Build ranking input
     const rankingInput: RankingInput = {
       mood: input.mood,
-      genres: input.genre ? (Array.isArray(input.genre) ? input.genre : [input.genre]) : undefined,
+      genres: input.genre
+        ? Array.isArray(input.genre)
+          ? input.genre
+          : [input.genre]
+        : undefined,
       platforms: input.platforms,
       runtime: input.runtime,
     };
@@ -363,14 +425,19 @@ export class MovieAgent {
    * @param input - User input
    * @returns Array of formatted recommendations
    */
-  private formatRecommendations(movies: MovieWithProviders[], input: UserInput): MovieRecommendation[] {
+  private formatRecommendations(
+    movies: MovieWithProviders[],
+    input: UserInput
+  ): MovieRecommendation[] {
     return movies.map(movie => {
       // Build streaming platform information
-      const streamingPlatforms: StreamingPlatform[] = movie.platforms.map(name => ({
-        name,
-        type: 'subscription',
-        available: true,
-      }));
+      const streamingPlatforms: StreamingPlatform[] = movie.platforms.map(
+        name => ({
+          name,
+          type: 'subscription',
+          available: true,
+        })
+      );
 
       // Generate match reason based on input
       const reason = this.generateMatchReason(movie, input);
@@ -397,21 +464,28 @@ export class MovieAgent {
    * @param input - User input
    * @returns Match reason string
    */
-  private generateMatchReason(movie: MovieWithProviders, input: UserInput): string {
+  private generateMatchReason(
+    movie: MovieWithProviders,
+    input: UserInput
+  ): string {
     const reasons: string[] = [];
 
     // Genre match
     const movieGenres = movie.genres?.map(g => g.name) || [];
     const userGenres = this.resolveGenres(input);
     const matchedGenres = movieGenres.filter(g => userGenres.includes(g));
-    
+
     if (matchedGenres.length > 0) {
-      reasons.push(`matches your ${input.mood ? `${input.mood} mood` : 'genre preferences'} (${matchedGenres.join(', ')})`);
+      reasons.push(
+        `matches your ${input.mood ? `${input.mood} mood` : 'genre preferences'} (${matchedGenres.join(', ')})`
+      );
     }
 
     // Platform availability
     if (input.platforms && input.platforms.length > 0) {
-      const matchedPlatforms = movie.platforms.filter(p => input.platforms!.includes(p));
+      const matchedPlatforms = movie.platforms.filter(p =>
+        input.platforms!.includes(p)
+      );
       if (matchedPlatforms.length > 0) {
         reasons.push(`available on ${matchedPlatforms.join(', ')}`);
       }

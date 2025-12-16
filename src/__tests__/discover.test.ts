@@ -45,7 +45,9 @@ describe('buildDiscoverParams', () => {
     });
 
     it('filters out unknown genres', () => {
-      const input: DiscoverInput = { genres: ['Action', 'UnknownGenre', 'Drama'] };
+      const input: DiscoverInput = {
+        genres: ['Action', 'UnknownGenre', 'Drama'],
+      };
       const params = buildDiscoverParams(input);
       expect(params.with_genres).toBe('28,18');
     });
@@ -274,7 +276,7 @@ describe('discoverMovies', () => {
 
   it('creates default apiClient when not provided', async () => {
     const input: DiscoverInput = { mood: 'happy' };
-    
+
     // This test would actually call the API, so we'll mock the constructor
     const mockDiscoverMovies = jest.fn().mockResolvedValue({
       page: 1,
@@ -283,12 +285,14 @@ describe('discoverMovies', () => {
       total_results: 0,
     });
 
-    jest.spyOn(TmdbApiClient.prototype, 'discoverMovies').mockImplementation(mockDiscoverMovies);
+    jest
+      .spyOn(TmdbApiClient.prototype, 'discoverMovies')
+      .mockImplementation(mockDiscoverMovies);
 
     await discoverMovies(input);
 
     expect(mockDiscoverMovies).toHaveBeenCalled();
-    
+
     jest.restoreAllMocks();
   });
 
@@ -299,7 +303,9 @@ describe('discoverMovies', () => {
 
     const input: DiscoverInput = { genres: ['Horror'] };
 
-    await expect(discoverMovies(input, mockApiClient)).rejects.toThrow('API Error');
+    await expect(discoverMovies(input, mockApiClient)).rejects.toThrow(
+      'API Error'
+    );
   });
 
   it('handles complex input with mood and constraints', async () => {

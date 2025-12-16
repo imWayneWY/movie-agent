@@ -1,7 +1,11 @@
 // src/__tests__/performance.test.ts
 import { MovieAgent } from '../agent';
 import { UserInput } from '../types';
-import TmdbApiClient, { MovieDetails, DiscoverMoviesResponse, WatchProvidersResponse } from '../tmdbApi';
+import TmdbApiClient, {
+  MovieDetails,
+  DiscoverMoviesResponse,
+  WatchProvidersResponse,
+} from '../tmdbApi';
 
 /**
  * Mock TMDb client with fast responses for performance testing
@@ -23,8 +27,8 @@ class FastMockTmdbClient extends TmdbApiClient {
         overview: `Description for movie ${i + 1}`,
         release_date: '2023-01-15',
         genre_ids: [28, 12],
-        vote_average: 7.5 + (i * 0.1),
-        popularity: 100 + (i * 10),
+        vote_average: 7.5 + i * 0.1,
+        popularity: 100 + i * 10,
       })),
     });
   }

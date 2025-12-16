@@ -1,4 +1,10 @@
-import { Cache, getCache, resetCache, generateDiscoverCacheKey, generateProvidersCacheKey } from '../cache';
+import {
+  Cache,
+  getCache,
+  resetCache,
+  generateDiscoverCacheKey,
+  generateProvidersCacheKey,
+} from '../cache';
 
 describe('Cache', () => {
   describe('basic operations', () => {
@@ -72,11 +78,11 @@ describe('Cache', () => {
 
     it('should use custom TTL when provided', async () => {
       cache.set('key1', 'value1', 2); // 2 seconds
-      
+
       // After 1 second, should still exist
       await new Promise(resolve => setTimeout(resolve, 1100));
       expect(cache.get('key1')).toBe('value1');
-      
+
       // After 2 seconds, should expire
       await new Promise(resolve => setTimeout(resolve, 1100));
       expect(cache.get('key1')).toBeUndefined();
@@ -85,10 +91,10 @@ describe('Cache', () => {
     it('should remove expired entries on access', async () => {
       cache.set('key1', 'value1');
       expect(cache.size()).toBe(1);
-      
+
       // Wait for expiry
       await new Promise(resolve => setTimeout(resolve, 1100));
-      
+
       // Accessing expired entry should remove it
       expect(cache.get('key1')).toBeUndefined();
       expect(cache.size()).toBe(0);
@@ -97,7 +103,7 @@ describe('Cache', () => {
     it('should not return expired entries with has()', async () => {
       cache.set('key1', 'value1');
       expect(cache.has('key1')).toBe(true);
-      
+
       await new Promise(resolve => setTimeout(resolve, 1100));
       expect(cache.has('key1')).toBe(false);
     });
@@ -114,12 +120,12 @@ describe('Cache', () => {
       cache.set('key1', 'value1');
       cache.set('key2', 'value2');
       cache.set('key3', 'value3', 10); // Long TTL
-      
+
       expect(cache.size()).toBe(3);
-      
+
       // Wait for first two to expire
       await new Promise(resolve => setTimeout(resolve, 1100));
-      
+
       const removed = cache.prune();
       expect(removed).toBe(2);
       expect(cache.size()).toBe(1);
@@ -129,7 +135,7 @@ describe('Cache', () => {
     it('should return 0 when no entries expired', () => {
       cache.set('key1', 'value1', 10);
       cache.set('key2', 'value2', 10);
-      
+
       const removed = cache.prune();
       expect(removed).toBe(0);
       expect(cache.size()).toBe(2);
@@ -154,7 +160,7 @@ describe('Cache', () => {
     it('should share state between calls', () => {
       const cache1 = getCache(3600);
       cache1.set('key1', 'value1');
-      
+
       const cache2 = getCache(3600);
       expect(cache2.get('key1')).toBe('value1');
     });
@@ -162,9 +168,9 @@ describe('Cache', () => {
     it('should reset the singleton', () => {
       const cache1 = getCache(3600);
       cache1.set('key1', 'value1');
-      
+
       resetCache();
-      
+
       const cache2 = getCache(3600);
       expect(cache2.get('key1')).toBeUndefined();
     });
@@ -175,22 +181,28 @@ describe('Cache', () => {
       it('should generate consistent keys for same parameters', () => {
         const params1 = { mood: 'happy', genre: 'Comedy', year: 2020 };
         const params2 = { mood: 'happy', genre: 'Comedy', year: 2020 };
-        
-        expect(generateDiscoverCacheKey(params1)).toBe(generateDiscoverCacheKey(params2));
+
+        expect(generateDiscoverCacheKey(params1)).toBe(
+          generateDiscoverCacheKey(params2)
+        );
       });
 
       it('should generate different keys for different parameters', () => {
         const params1 = { mood: 'happy', genre: 'Comedy' };
         const params2 = { mood: 'sad', genre: 'Drama' };
-        
-        expect(generateDiscoverCacheKey(params1)).not.toBe(generateDiscoverCacheKey(params2));
+
+        expect(generateDiscoverCacheKey(params1)).not.toBe(
+          generateDiscoverCacheKey(params2)
+        );
       });
 
       it('should generate consistent keys regardless of parameter order', () => {
         const params1 = { year: 2020, mood: 'happy', genre: 'Comedy' };
         const params2 = { genre: 'Comedy', mood: 'happy', year: 2020 };
-        
-        expect(generateDiscoverCacheKey(params1)).toBe(generateDiscoverCacheKey(params2));
+
+        expect(generateDiscoverCacheKey(params1)).toBe(
+          generateDiscoverCacheKey(params2)
+        );
       });
 
       it('should handle empty parameters', () => {
@@ -201,7 +213,7 @@ describe('Cache', () => {
       it('should include all parameter values in key', () => {
         const params = { mood: 'happy', page: 2 };
         const key = generateDiscoverCacheKey(params);
-        
+
         expect(key).toContain('mood=happy');
         expect(key).toContain('page=2');
       });
@@ -221,14 +233,14 @@ describe('Cache', () => {
       it('should generate different keys for different movies', () => {
         const key1 = generateProvidersCacheKey(12345, 'CA');
         const key2 = generateProvidersCacheKey(67890, 'CA');
-        
+
         expect(key1).not.toBe(key2);
       });
 
       it('should generate different keys for different regions', () => {
         const key1 = generateProvidersCacheKey(12345, 'CA');
         const key2 = generateProvidersCacheKey(12345, 'US');
-        
+
         expect(key1).not.toBe(key2);
       });
     });
@@ -249,7 +261,7 @@ describe('Cache', () => {
     it('should demonstrate cache hit on subsequent access', () => {
       const key = 'test-key';
       const value = { data: 'test' };
-      
+
       cache.set(key, value);
       expect(cache.get(key)).toEqual(value); // Cache hit
       expect(cache.get(key)).toEqual(value); // Another hit
@@ -259,10 +271,10 @@ describe('Cache', () => {
       const shortCache = new Cache(1); // 1 second TTL
       const key = 'test-key';
       const value = 'test-value';
-      
+
       shortCache.set(key, value);
       expect(shortCache.get(key)).toBe(value); // Cache hit
-      
+
       await new Promise(resolve => setTimeout(resolve, 1100));
       expect(shortCache.get(key)).toBeUndefined(); // Cache miss after expiry
     });
@@ -270,10 +282,10 @@ describe('Cache', () => {
     it('should demonstrate cache miss after deletion', () => {
       const key = 'test-key';
       const value = 'test-value';
-      
+
       cache.set(key, value);
       expect(cache.get(key)).toBe(value); // Cache hit
-      
+
       cache.delete(key);
       expect(cache.get(key)).toBeUndefined(); // Cache miss after deletion
     });

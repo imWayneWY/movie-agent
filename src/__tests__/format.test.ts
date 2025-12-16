@@ -1,19 +1,12 @@
 import { describe, it, expect } from '@jest/globals';
-import {
-  buildDescription,
-  toRecommendation,
-  formatResponse,
-} from '../format';
-import {
-  MovieRecommendation,
-  StreamingPlatform,
-  AgentResponse,
-} from '../types';
+import { buildDescription, toRecommendation, formatResponse } from '../format';
+import { MovieRecommendation, StreamingPlatform } from '../types';
 
 describe('format', () => {
   describe('buildDescription', () => {
     it('should return a description when overview is within word limit', () => {
-      const shortOverview = 'A short movie description with less than fifty words.';
+      const shortOverview =
+        'A short movie description with less than fifty words.';
       const result = buildDescription(shortOverview);
       expect(result).toBe(shortOverview);
     });
@@ -277,9 +270,12 @@ describe('format', () => {
         'Perfect for your relaxed mood'
       );
 
-      const response = formatResponse([recommendation, recommendation, recommendation], {
-        inputParameters: { mood: 'relaxed' },
-      });
+      const response = formatResponse(
+        [recommendation, recommendation, recommendation],
+        {
+          inputParameters: { mood: 'relaxed' },
+        }
+      );
 
       expect(response.recommendations).toHaveLength(3);
       expect(response.recommendations[0].title).toBe('Integration Test Movie');

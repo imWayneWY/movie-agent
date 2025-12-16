@@ -6,7 +6,8 @@ describe('TmdbApiClient Live', () => {
   let client: any;
 
   const required = ['TMDB_API_KEY'];
-  const hasEnv = process.env.LIVE_TEST === '1' && required.every(k => !!process.env[k]);
+  const hasEnv =
+    process.env.LIVE_TEST === '1' && required.every(k => !!process.env[k]);
 
   if (!hasEnv) {
     test.skip('skipped: LIVE_TEST=1 and TMDB env vars required', () => {});
@@ -20,7 +21,10 @@ describe('TmdbApiClient Live', () => {
   });
 
   test('discoverMovies returns results', async () => {
-    const res = await client.discoverMovies({ sort_by: 'popularity.desc', page: 1 });
+    const res = await client.discoverMovies({
+      sort_by: 'popularity.desc',
+      page: 1,
+    });
     expect(res).toBeTruthy();
     expect(res.page).toBeGreaterThanOrEqual(1);
     expect(Array.isArray(res.results)).toBe(true);

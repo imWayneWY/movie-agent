@@ -1,7 +1,11 @@
 // src/__tests__/errors.test.ts
 import { MovieAgent } from '../agent';
 import { UserInput, ErrorResponse } from '../types';
-import TmdbApiClient, { MovieDetails, DiscoverMoviesResponse, WatchProvidersResponse } from '../tmdbApi';
+import TmdbApiClient, {
+  MovieDetails,
+  DiscoverMoviesResponse,
+  WatchProvidersResponse,
+} from '../tmdbApi';
 
 /**
  * Mock TMDb client that simulates invalid API key errors
@@ -12,15 +16,21 @@ class InvalidApiKeyMockClient extends TmdbApiClient {
   }
 
   async discoverMovies(): Promise<DiscoverMoviesResponse> {
-    throw new Error('TMDb API error 401: Invalid API key: You must be granted a valid key.');
+    throw new Error(
+      'TMDb API error 401: Invalid API key: You must be granted a valid key.'
+    );
   }
 
-  async getMovieDetails(movieId: number): Promise<MovieDetails> {
-    throw new Error('TMDb API error 401: Invalid API key: You must be granted a valid key.');
+  async getMovieDetails(_movieId: number): Promise<MovieDetails> {
+    throw new Error(
+      'TMDb API error 401: Invalid API key: You must be granted a valid key.'
+    );
   }
 
-  async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
-    throw new Error('TMDb API error 401: Invalid API key: You must be granted a valid key.');
+  async getWatchProviders(_movieId: number): Promise<WatchProvidersResponse> {
+    throw new Error(
+      'TMDb API error 401: Invalid API key: You must be granted a valid key.'
+    );
   }
 }
 
@@ -33,14 +43,16 @@ class RateLimitMockClient extends TmdbApiClient {
   }
 
   async discoverMovies(): Promise<DiscoverMoviesResponse> {
-    throw new Error('TMDb API error 429: Your request count (41) is over the allowed limit of 40.');
+    throw new Error(
+      'TMDb API error 429: Your request count (41) is over the allowed limit of 40.'
+    );
   }
 
-  async getMovieDetails(movieId: number): Promise<MovieDetails> {
+  async getMovieDetails(_movieId: number): Promise<MovieDetails> {
     throw new Error('TMDb API error 429: Too Many Requests');
   }
 
-  async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+  async getWatchProviders(_movieId: number): Promise<WatchProvidersResponse> {
     throw new Error('TMDb API error 429: rate limit exceeded');
   }
 }
@@ -57,11 +69,13 @@ class McpUnavailableMockClient extends TmdbApiClient {
     throw new Error('Network error calling TMDb API: ECONNREFUSED');
   }
 
-  async getMovieDetails(movieId: number): Promise<MovieDetails> {
-    throw new Error('Network error calling TMDb API: connect ENOTFOUND api.themoviedb.org');
+  async getMovieDetails(_movieId: number): Promise<MovieDetails> {
+    throw new Error(
+      'Network error calling TMDb API: connect ENOTFOUND api.themoviedb.org'
+    );
   }
 
-  async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+  async getWatchProviders(_movieId: number): Promise<WatchProvidersResponse> {
     throw new Error('Network error calling TMDb API: timeout exceeded');
   }
 }
@@ -69,7 +83,9 @@ class McpUnavailableMockClient extends TmdbApiClient {
 /**
  * Helper function to assert error response structure
  */
-function assertIsErrorResponse(response: any): asserts response is ErrorResponse {
+function assertIsErrorResponse(
+  response: any
+): asserts response is ErrorResponse {
   expect(response).toBeDefined();
   expect(response.error).toBe(true);
   expect(response).toHaveProperty('errorType');
@@ -150,7 +166,9 @@ describe('Error Handling Tests', () => {
 
       assertIsErrorResponse(response);
       expect(response.errorType).toBe('RATE_LIMIT_EXCEEDED');
-      expect(response.message).toBe('TMDB API rate limit exceeded. Please try again later.');
+      expect(response.message).toBe(
+        'TMDB API rate limit exceeded. Please try again later.'
+      );
       expect(response.details).toBeDefined();
       expect(response.details).toContain('429');
     });
@@ -229,11 +247,15 @@ describe('Error Handling Tests', () => {
           };
         }
 
-        async getMovieDetails(movieId: number): Promise<MovieDetails> {
-          throw new Error('Network error calling TMDb API: connect ENOTFOUND api.themoviedb.org');
+        async getMovieDetails(_movieId: number): Promise<MovieDetails> {
+          throw new Error(
+            'Network error calling TMDb API: connect ENOTFOUND api.themoviedb.org'
+          );
         }
 
-        async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+        async getWatchProviders(
+          _movieId: number
+        ): Promise<WatchProvidersResponse> {
           throw new Error('Network error calling TMDb API: connect ENOTFOUND');
         }
       }
@@ -263,11 +285,13 @@ describe('Error Handling Tests', () => {
           throw new Error('Network error calling TMDb API: timeout exceeded');
         }
 
-        async getMovieDetails(movieId: number): Promise<MovieDetails> {
+        async getMovieDetails(_movieId: number): Promise<MovieDetails> {
           throw new Error('Network error calling TMDb API: timeout');
         }
 
-        async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+        async getWatchProviders(
+          _movieId: number
+        ): Promise<WatchProvidersResponse> {
           throw new Error('Network error calling TMDb API: Request timeout');
         }
       }
@@ -320,7 +344,9 @@ describe('Error Handling Tests', () => {
           };
         }
 
-        async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+        async getWatchProviders(
+          movieId: number
+        ): Promise<WatchProvidersResponse> {
           return {
             id: movieId,
             results: {},
@@ -421,7 +447,9 @@ describe('Error Handling Tests', () => {
           };
         }
 
-        async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+        async getWatchProviders(
+          movieId: number
+        ): Promise<WatchProvidersResponse> {
           return {
             id: movieId,
             results: {},
@@ -475,11 +503,13 @@ describe('Error Handling Tests', () => {
           throw new Error('Something went completely wrong');
         }
 
-        async getMovieDetails(movieId: number): Promise<MovieDetails> {
+        async getMovieDetails(_movieId: number): Promise<MovieDetails> {
           throw new Error('Unexpected error occurred');
         }
 
-        async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+        async getWatchProviders(
+          _movieId: number
+        ): Promise<WatchProvidersResponse> {
           throw new Error('Unknown system error');
         }
       }
@@ -497,7 +527,9 @@ describe('Error Handling Tests', () => {
 
       assertIsErrorResponse(response);
       expect(response.errorType).toBe('UNKNOWN_ERROR');
-      expect(response.message).toBe('An unexpected error occurred while processing your request');
+      expect(response.message).toBe(
+        'An unexpected error occurred while processing your request'
+      );
       expect(response.details).toBeDefined();
     });
 
@@ -512,11 +544,13 @@ describe('Error Handling Tests', () => {
           throw 'String error message';
         }
 
-        async getMovieDetails(movieId: number): Promise<MovieDetails> {
+        async getMovieDetails(_movieId: number): Promise<MovieDetails> {
           throw { code: 'CUSTOM_ERROR', message: 'Custom error object' };
         }
 
-        async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
+        async getWatchProviders(
+          _movieId: number
+        ): Promise<WatchProvidersResponse> {
           throw null;
         }
       }

@@ -70,8 +70,13 @@ export class TmdbApiClient {
     this.region = region ?? config.TMDB_REGION;
   }
 
-  private buildUrl(path: string, params?: Record<string, string | number | undefined>): string {
-    const normalizedBase = this.baseUrl.endsWith('/') ? this.baseUrl : this.baseUrl + '/';
+  private buildUrl(
+    path: string,
+    params?: Record<string, string | number | undefined>
+  ): string {
+    const normalizedBase = this.baseUrl.endsWith('/')
+      ? this.baseUrl
+      : this.baseUrl + '/';
     const url = new URL(path, normalizedBase);
     // TMDb v3 supports API key via query string
     url.searchParams.set('api_key', this.apiKey);
@@ -92,22 +97,30 @@ export class TmdbApiClient {
         headers: { Accept: 'application/json' },
       });
     } catch (err: any) {
-      throw new Error(`Network error calling TMDb API: ${err?.message ?? String(err)}`);
+      throw new Error(
+        `Network error calling TMDb API: ${err?.message ?? String(err)}`
+      );
     }
 
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
-      throw new Error(`TMDb API error ${resp.status}: ${text || resp.statusText}`);
+      throw new Error(
+        `TMDb API error ${resp.status}: ${text || resp.statusText}`
+      );
     }
 
     try {
       return (await resp.json()) as T;
     } catch (err: any) {
-      throw new Error(`Invalid JSON from TMDb API: ${err?.message ?? String(err)}`);
+      throw new Error(
+        `Invalid JSON from TMDb API: ${err?.message ?? String(err)}`
+      );
     }
   }
 
-  async discoverMovies(params: DiscoverMoviesParams = {}): Promise<DiscoverMoviesResponse> {
+  async discoverMovies(
+    params: DiscoverMoviesParams = {}
+  ): Promise<DiscoverMoviesResponse> {
     const url = this.buildUrl('discover/movie', {
       sort_by: params.sort_by,
       with_genres: params.with_genres,
@@ -127,8 +140,15 @@ export class TmdbApiClient {
     return this.doFetch<MovieDetails>(url);
   }
 
-  async searchMovies(query: string, page?: number): Promise<SearchMoviesResponse> {
-    const url = this.buildUrl('search/movie', { query, page, region: this.region });
+  async searchMovies(
+    query: string,
+    page?: number
+  ): Promise<SearchMoviesResponse> {
+    const url = this.buildUrl('search/movie', {
+      query,
+      page,
+      region: this.region,
+    });
     return this.doFetch<SearchMoviesResponse>(url);
   }
 

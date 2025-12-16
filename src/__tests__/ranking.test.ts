@@ -1,5 +1,10 @@
 // src/__tests__/ranking.test.ts
-import { scoreMovie, rankMovies, RankableMovie, RankingInput } from '../ranking';
+import {
+  scoreMovie,
+  rankMovies,
+  RankableMovie,
+  RankingInput,
+} from '../ranking';
 
 // Helper function to create test movies
 function createMovie(overrides: Partial<RankableMovie>): RankableMovie {
@@ -29,7 +34,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = { mood: 'happy' };
       const score = scoreMovie(movie, input);
-      
+
       // Genre match should be high (Comedy and Family are in happy mood)
       expect(score).toBeGreaterThan(30); // At least partial genre weight
     });
@@ -40,7 +45,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = { mood: 'happy' };
       const score = scoreMovie(movie, input);
-      
+
       // Should get some points from neutral scores, but not from genre
       expect(score).toBeLessThan(40);
     });
@@ -54,7 +59,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = { genres: ['Action', 'Adventure'] };
       const score = scoreMovie(movie, input);
-      
+
       // Perfect genre match should score high
       expect(score).toBeGreaterThan(35);
     });
@@ -65,7 +70,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = {};
       const score = scoreMovie(movie, input);
-      
+
       // Should get neutral scores across all categories
       expect(score).toBeGreaterThan(0);
       expect(score).toBeLessThan(60);
@@ -79,7 +84,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = { platforms: ['Netflix'] };
       const score = scoreMovie(movie, input);
-      
+
       // Should get full platform score
       expect(score).toBeGreaterThan(25);
     });
@@ -90,7 +95,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = { platforms: ['Netflix', 'Disney+'] };
       const score = scoreMovie(movie, input);
-      
+
       // No platform match, should be low (gets neutral scores elsewhere)
       expect(score).toBeLessThan(35);
     });
@@ -101,7 +106,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = { platforms: ['Netflix'] };
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeLessThan(35);
     });
 
@@ -111,7 +116,7 @@ describe('scoreMovie', () => {
       });
       const input: RankingInput = {};
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeGreaterThan(0);
     });
   });
@@ -125,7 +130,7 @@ describe('scoreMovie', () => {
         runtime: { min: 90, max: 150 },
       };
       const score = scoreMovie(movie, input);
-      
+
       // Perfect runtime match
       expect(score).toBeGreaterThan(10);
     });
@@ -138,7 +143,7 @@ describe('scoreMovie', () => {
         runtime: { min: 90, max: 120 },
       };
       const score = scoreMovie(movie, input);
-      
+
       // Should be penalized for being 60 minutes too long
       expect(score).toBeLessThan(45);
     });
@@ -151,7 +156,7 @@ describe('scoreMovie', () => {
         runtime: { min: 120 },
       };
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeGreaterThan(10);
     });
 
@@ -163,7 +168,7 @@ describe('scoreMovie', () => {
         runtime: { max: 120 },
       };
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeGreaterThan(10);
     });
 
@@ -175,7 +180,7 @@ describe('scoreMovie', () => {
         runtime: { min: 90, max: 120 },
       };
       const score = scoreMovie(movie, input);
-      
+
       // Missing runtime should penalize
       expect(score).toBeLessThan(45);
     });
@@ -190,7 +195,7 @@ describe('scoreMovie', () => {
         year: { preferred: 2020 },
       };
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeGreaterThan(8);
     });
 
@@ -202,7 +207,7 @@ describe('scoreMovie', () => {
         year: { preferred: 2020 },
       };
       const score = scoreMovie(movie, input);
-      
+
       // 10 years away should have low year score but gets neutral elsewhere
       expect(score).toBeLessThan(45);
     });
@@ -215,7 +220,7 @@ describe('scoreMovie', () => {
         year: { from: 2010, to: 2020 },
       };
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeGreaterThan(8);
     });
 
@@ -227,7 +232,7 @@ describe('scoreMovie', () => {
         year: { from: 2010, to: 2020 },
       };
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeLessThan(45);
     });
 
@@ -239,7 +244,7 @@ describe('scoreMovie', () => {
         year: { preferred: 2020 },
       };
       const score = scoreMovie(movie, input);
-      
+
       expect(score).toBeLessThan(45);
     });
   });
@@ -253,10 +258,10 @@ describe('scoreMovie', () => {
         popularity: 10,
       });
       const input: RankingInput = {};
-      
+
       const popularScore = scoreMovie(popularMovie, input);
       const unpopularScore = scoreMovie(unpopularMovie, input);
-      
+
       // Popular movie should score slightly higher
       expect(popularScore).toBeGreaterThan(unpopularScore);
     });
@@ -266,7 +271,7 @@ describe('scoreMovie', () => {
         popularity: undefined,
       });
       const input: RankingInput = {};
-      
+
       expect(() => scoreMovie(movie, input)).not.toThrow();
     });
   });
@@ -286,9 +291,9 @@ describe('scoreMovie', () => {
         runtime: { min: 90, max: 120 },
         year: { preferred: 2020 },
       };
-      
+
       const score = scoreMovie(movie, input);
-      
+
       // Should score very high with all criteria met
       expect(score).toBeGreaterThan(70);
     });
@@ -307,9 +312,9 @@ describe('scoreMovie', () => {
         runtime: { min: 90, max: 120 },
         year: { preferred: 2020 },
       };
-      
+
       const score = scoreMovie(movie, input);
-      
+
       // Should score very low with no criteria met
       expect(score).toBeLessThan(20);
     });
@@ -357,9 +362,9 @@ describe('rankMovies', () => {
   it('handles empty movie list', () => {
     const movies: RankableMovie[] = [];
     const input: RankingInput = { mood: 'happy' };
-    
+
     const ranked = rankMovies(movies, input);
-    
+
     expect(ranked).toEqual([]);
   });
 
@@ -380,9 +385,9 @@ describe('rankMovies', () => {
     ];
 
     const input: RankingInput = { mood: 'happy' };
-    
+
     const ranked = rankMovies(movies, input);
-    
+
     // Both should have similar scores
     expect(ranked).toHaveLength(2);
   });
@@ -503,13 +508,13 @@ describe('rankMovies', () => {
 
     // Perfect Match should be first (all criteria met)
     expect(ranked[0].title).toBe('Perfect Match');
-    
+
     // Good Match should be second (on platform, right genre, slightly off runtime/year)
     expect(ranked[1].title).toBe('Good Match');
-    
+
     // Okay Match should be third (right genre and runtime/year, but no platform)
     expect(ranked[2].title).toBe('Okay Match');
-    
+
     // Poor Match should be last (wrong genre, wrong platform, wrong runtime, wrong year)
     expect(ranked[3].title).toBe('Poor Match');
   });

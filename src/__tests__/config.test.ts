@@ -1,5 +1,3 @@
-import config from '../config';
-
 describe('Config', () => {
   const OLD_ENV = process.env;
 
@@ -16,6 +14,7 @@ describe('Config', () => {
     process.env.TMDB_API_KEY = 'test';
     process.env.TMDB_BASE_URL = '';
     jest.resetModules();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const cfg = require('../config').default;
     expect(cfg.TMDB_REGION).toBe('CA');
     expect(cfg.CACHE_TTL).toBe(86400);
@@ -34,6 +33,7 @@ describe('Config', () => {
     process.env.TMDB_API_KEY = 'test';
     delete process.env.TMDB_BASE_URL;
     jest.resetModules();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const cfg = require('../config').default;
     expect(cfg.TMDB_BASE_URL).toBe('https://api.themoviedb.org/3');
   });

@@ -5,11 +5,11 @@
  */
 export function moodToGenres(mood: string): string[] {
   const mapping: Record<string, string[]> = {
-    happy: ["Comedy", "Family", "Musical"],
-    thoughtful: ["Drama", "Documentary", "Biography"],
-    excited: ["Action", "Adventure", "Thriller"],
-    relaxed: ["Romance", "Comedy", "Animation"],
-    scared: ["Horror", "Thriller", "Mystery"],
+    happy: ['Comedy', 'Family', 'Musical'],
+    thoughtful: ['Drama', 'Documentary', 'Biography'],
+    excited: ['Action', 'Adventure', 'Thriller'],
+    relaxed: ['Romance', 'Comedy', 'Animation'],
+    scared: ['Horror', 'Thriller', 'Mystery'],
   };
   const genres = mapping[mood.toLowerCase()] || [];
   // Ensure uniqueness

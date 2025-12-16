@@ -1,10 +1,16 @@
 // src/__tests__/agent.test.ts
 import { MovieAgent } from '../agent';
 import { UserInput, AgentResponse, ErrorResponse } from '../types';
-import TmdbApiClient, { MovieDetails, DiscoverMoviesResponse, WatchProvidersResponse } from '../tmdbApi';
+import TmdbApiClient, {
+  MovieDetails,
+  DiscoverMoviesResponse,
+  WatchProvidersResponse,
+} from '../tmdbApi';
 
 // Type guard to check if response is a successful AgentResponse
-function isAgentResponse(response: AgentResponse | ErrorResponse): response is AgentResponse {
+function isAgentResponse(
+  response: AgentResponse | ErrorResponse
+): response is AgentResponse {
   return !('error' in response);
 }
 
@@ -74,7 +80,8 @@ class MockTmdbClient extends TmdbApiClient {
       1: {
         id: 1,
         title: 'The Grand Adventure',
-        overview: 'An epic journey through unknown lands filled with danger and excitement. Our hero must overcome incredible odds to save the world from an ancient evil that threatens to destroy everything.',
+        overview:
+          'An epic journey through unknown lands filled with danger and excitement. Our hero must overcome incredible odds to save the world from an ancient evil that threatens to destroy everything.',
         release_date: '2023-05-15',
         genres: [
           { id: 28, name: 'Action' },
@@ -87,7 +94,8 @@ class MockTmdbClient extends TmdbApiClient {
       2: {
         id: 2,
         title: 'Comedy Night',
-        overview: 'A hilarious comedy about everyday life that will have you laughing from start to finish. Follow the misadventures of a group of friends as they navigate the ups and downs of modern living with humor and heart.',
+        overview:
+          'A hilarious comedy about everyday life that will have you laughing from start to finish. Follow the misadventures of a group of friends as they navigate the ups and downs of modern living with humor and heart.',
         release_date: '2022-08-20',
         genres: [{ id: 35, name: 'Comedy' }],
         runtime: 98,
@@ -97,7 +105,8 @@ class MockTmdbClient extends TmdbApiClient {
       3: {
         id: 3,
         title: 'Mystery Manor',
-        overview: 'A thrilling mystery set in an old mansion where nothing is as it seems. A detective must unravel a web of secrets and lies to solve a decades-old crime before time runs out.',
+        overview:
+          'A thrilling mystery set in an old mansion where nothing is as it seems. A detective must unravel a web of secrets and lies to solve a decades-old crime before time runs out.',
         release_date: '2023-10-31',
         genres: [
           { id: 9648, name: 'Mystery' },
@@ -110,7 +119,8 @@ class MockTmdbClient extends TmdbApiClient {
       4: {
         id: 4,
         title: 'Romantic Getaway',
-        overview: 'A heartwarming romance set in Paris that will make you believe in love again. Two strangers meet by chance and discover that fate has brought them together for a reason in the city of lights.',
+        overview:
+          'A heartwarming romance set in Paris that will make you believe in love again. Two strangers meet by chance and discover that fate has brought them together for a reason in the city of lights.',
         release_date: '2023-02-14',
         genres: [
           { id: 10749, name: 'Romance' },
@@ -123,7 +133,8 @@ class MockTmdbClient extends TmdbApiClient {
       5: {
         id: 5,
         title: 'Action Hero',
-        overview: 'Non-stop action and explosive thrills as our hero fights against impossible odds. With incredible stunts and heart-pounding sequences, this movie delivers edge-of-your-seat entertainment from beginning to end.',
+        overview:
+          'Non-stop action and explosive thrills as our hero fights against impossible odds. With incredible stunts and heart-pounding sequences, this movie delivers edge-of-your-seat entertainment from beginning to end.',
         release_date: '2023-07-04',
         genres: [
           { id: 28, name: 'Action' },
@@ -163,9 +174,7 @@ class MockTmdbClient extends TmdbApiClient {
         results: {
           CA: {
             link: 'https://www.themoviedb.org/movie/2/watch',
-            flatrate: [
-              { provider_id: 337, provider_name: 'Disney Plus' },
-            ],
+            flatrate: [{ provider_id: 337, provider_name: 'Disney Plus' }],
           },
         },
       },
@@ -186,9 +195,7 @@ class MockTmdbClient extends TmdbApiClient {
         results: {
           CA: {
             link: 'https://www.themoviedb.org/movie/4/watch',
-            flatrate: [
-              { provider_id: 9, provider_name: 'Amazon Prime Video' },
-            ],
+            flatrate: [{ provider_id: 9, provider_name: 'Amazon Prime Video' }],
           },
         },
       },
@@ -223,16 +230,16 @@ describe('MovieAgent', () => {
   beforeEach(() => {
     // Set up environment
     process.env.TMDB_API_KEY = 'test-api-key';
-    
+
     // Create mock client
     mockClient = new MockTmdbClient();
-    
+
     // Create logger that captures messages
     logMessages = [];
     const logger = (message: string) => {
       logMessages.push(message);
     };
-    
+
     // Create agent with mocks
     agent = new MovieAgent(mockClient, logger);
   });
@@ -249,17 +256,22 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       // Assert response structure
       expect(response).toBeDefined();
-      
+
       // Type guard to ensure successful response
       if (!isAgentResponse(response)) {
-        fail(`Expected AgentResponse but got error: ${(response as ErrorResponse).errorType} - ${(response as ErrorResponse).message}`);
+        fail(
+          `Expected AgentResponse but got error: ${(response as ErrorResponse).errorType} - ${(response as ErrorResponse).message}`
+        );
         return; // Never reached but helps TypeScript
       }
-      
+
       expect(response.recommendations).toBeDefined();
       expect(response.metadata).toBeDefined();
 
@@ -268,7 +280,9 @@ describe('MovieAgent', () => {
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
 
       // Assert metadata
-      expect(response.metadata.totalResults).toBe(response.recommendations.length);
+      expect(response.metadata.totalResults).toBe(
+        response.recommendations.length
+      );
       expect(response.metadata.requestTimestamp).toBeDefined();
       expect(response.metadata.inputParameters).toEqual(input);
 
@@ -321,7 +335,10 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
@@ -340,7 +357,10 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
@@ -361,13 +381,18 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
       // All recommendations should be available on Netflix
       response.recommendations.forEach(rec => {
-        const hasNetflix = rec.streamingPlatforms.some(p => p.name === 'Netflix');
+        const hasNetflix = rec.streamingPlatforms.some(
+          p => p.name === 'Netflix'
+        );
         expect(hasNetflix).toBe(true);
       });
     });
@@ -380,7 +405,10 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
@@ -399,7 +427,10 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
@@ -417,7 +448,10 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
 
@@ -435,12 +469,15 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       response.recommendations.forEach(rec => {
         expect(rec.matchReason).toBeTruthy();
         expect(rec.matchReason.length).toBeGreaterThan(0);
-        
+
         // Match reason should reference either mood or genres
         const hasRelevantReason =
           rec.matchReason.includes('excited') ||
@@ -449,7 +486,7 @@ describe('MovieAgent', () => {
           rec.matchReason.includes('Adventure') ||
           rec.matchReason.includes('available') ||
           rec.matchReason.includes('rated');
-        
+
         expect(hasRelevantReason).toBe(true);
       });
     });
@@ -481,12 +518,12 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      
+
       // Should return ErrorResponse instead of throwing
       if (isAgentResponse(response)) {
         fail('Expected ErrorResponse but got AgentResponse');
       }
-      
+
       expect(response.errorType).toBe('VALIDATION_ERROR');
       expect(response.message).toContain('Invalid platform');
     });
@@ -499,12 +536,12 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      
+
       // Should return ErrorResponse instead of throwing
       if (isAgentResponse(response)) {
         fail('Expected ErrorResponse but got AgentResponse');
       }
-      
+
       expect(response.errorType).toBe('VALIDATION_ERROR');
       expect(response.message).toContain('runtime');
     });
@@ -517,12 +554,12 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      
+
       // Should return ErrorResponse instead of throwing
       if (isAgentResponse(response)) {
         fail('Expected ErrorResponse but got AgentResponse');
       }
-      
+
       expect(response.errorType).toBe('VALIDATION_ERROR');
       expect(response.message).toContain('Invalid year');
     });
@@ -535,12 +572,12 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      
+
       // Should return ErrorResponse instead of throwing
       if (isAgentResponse(response)) {
         fail('Expected ErrorResponse but got AgentResponse');
       }
-      
+
       expect(response.errorType).toBe('NO_RESULTS');
       expect(response.message).toContain('No movies');
     });
@@ -552,7 +589,10 @@ describe('MovieAgent', () => {
       };
 
       const response = await agent.getRecommendations(input);
-      if (!isAgentResponse(response)) { fail(`Expected AgentResponse but got error`); return; }
+      if (!isAgentResponse(response)) {
+        fail(`Expected AgentResponse but got error`);
+        return;
+      }
 
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
@@ -571,13 +611,17 @@ describe('MovieAgent', () => {
       };
 
       const response1 = await agent.getRecommendations(input);
-      if (!isAgentResponse(response1)) fail(`Expected AgentResponse but got error: ${response1.errorType}`);
+      if (!isAgentResponse(response1))
+        fail(`Expected AgentResponse but got error: ${response1.errorType}`);
       const response2 = await agent.getRecommendations(input);
-      if (!isAgentResponse(response2)) fail(`Expected AgentResponse but got error: ${response2.errorType}`);
+      if (!isAgentResponse(response2))
+        fail(`Expected AgentResponse but got error: ${response2.errorType}`);
 
       // Results should be identical
-      expect(response1.recommendations.length).toBe(response2.recommendations.length);
-      
+      expect(response1.recommendations.length).toBe(
+        response2.recommendations.length
+      );
+
       response1.recommendations.forEach((rec1, index) => {
         const rec2 = response2.recommendations[index];
         expect(rec1.title).toBe(rec2.title);

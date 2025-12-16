@@ -5,11 +5,22 @@
  */
 
 import { MovieAgent } from '../agent';
-import { UserInput, AgentResponse, ErrorResponse, StreamingPlatform } from '../types';
-import TmdbApiClient, { MovieDetails, DiscoverMoviesResponse, WatchProvidersResponse } from '../tmdbApi';
+import {
+  UserInput,
+  AgentResponse,
+  ErrorResponse,
+  StreamingPlatform,
+} from '../types';
+import TmdbApiClient, {
+  MovieDetails,
+  DiscoverMoviesResponse,
+  WatchProvidersResponse,
+} from '../tmdbApi';
 
 // Type guard to check if response is successful
-function isAgentResponse(response: AgentResponse | ErrorResponse): response is AgentResponse {
+function isAgentResponse(
+  response: AgentResponse | ErrorResponse
+): response is AgentResponse {
   return !('error' in response);
 }
 
@@ -139,7 +150,8 @@ class MockMCPClient extends TmdbApiClient {
       1: {
         id: 1,
         title: 'Epic Adventure Quest',
-        overview: 'An epic journey through mystical lands filled with magic, danger, and discovery. Our heroes must unite to defeat an ancient evil threatening their world.',
+        overview:
+          'An epic journey through mystical lands filled with magic, danger, and discovery. Our heroes must unite to defeat an ancient evil threatening their world.',
         release_date: '2023-06-15',
         genres: [
           { id: 28, name: 'Action' },
@@ -153,7 +165,8 @@ class MockMCPClient extends TmdbApiClient {
       2: {
         id: 2,
         title: 'Laugh Out Loud',
-        overview: 'A hilarious comedy about modern life, relationships, and the absurdity of everyday situations. Guaranteed to make you laugh until you cry.',
+        overview:
+          'A hilarious comedy about modern life, relationships, and the absurdity of everyday situations. Guaranteed to make you laugh until you cry.',
         release_date: '2023-03-20',
         genres: [{ id: 35, name: 'Comedy' }],
         runtime: 102,
@@ -163,7 +176,8 @@ class MockMCPClient extends TmdbApiClient {
       3: {
         id: 3,
         title: 'Dark Mystery',
-        overview: 'A gripping thriller with unexpected twists at every turn. A detective races against time to solve a case that challenges everything they believe.',
+        overview:
+          'A gripping thriller with unexpected twists at every turn. A detective races against time to solve a case that challenges everything they believe.',
         release_date: '2023-10-31',
         genres: [
           { id: 9648, name: 'Mystery' },
@@ -176,7 +190,8 @@ class MockMCPClient extends TmdbApiClient {
       4: {
         id: 4,
         title: 'Heartwarming Romance',
-        overview: 'A beautiful love story set in Paris that will touch your heart. Two souls find each other against all odds in the city of love.',
+        overview:
+          'A beautiful love story set in Paris that will touch your heart. Two souls find each other against all odds in the city of love.',
         release_date: '2023-02-14',
         genres: [
           { id: 10749, name: 'Romance' },
@@ -189,7 +204,8 @@ class MockMCPClient extends TmdbApiClient {
       5: {
         id: 5,
         title: 'Science Fiction Odyssey',
-        overview: 'Journey to the far reaches of space in this stunning sci-fi epic. Humanity\'s future hangs in the balance as they explore the unknown.',
+        overview:
+          "Journey to the far reaches of space in this stunning sci-fi epic. Humanity's future hangs in the balance as they explore the unknown.",
         release_date: '2023-08-10',
         genres: [
           { id: 878, name: 'Science Fiction' },
@@ -202,7 +218,8 @@ class MockMCPClient extends TmdbApiClient {
       6: {
         id: 6,
         title: 'Family Fun Time',
-        overview: 'A delightful family adventure for all ages. Join lovable characters on an unforgettable journey filled with laughter, heart, and life lessons.',
+        overview:
+          'A delightful family adventure for all ages. Join lovable characters on an unforgettable journey filled with laughter, heart, and life lessons.',
         release_date: '2023-07-04',
         genres: [
           { id: 10751, name: 'Family' },
@@ -216,7 +233,8 @@ class MockMCPClient extends TmdbApiClient {
       7: {
         id: 7,
         title: 'Horror Nightmare',
-        overview: 'A terrifying tale of supernatural events that will keep you on the edge of your seat. Not recommended for the faint of heart.',
+        overview:
+          'A terrifying tale of supernatural events that will keep you on the edge of your seat. Not recommended for the faint of heart.',
         release_date: '2023-10-13',
         genres: [
           { id: 27, name: 'Horror' },
@@ -229,7 +247,8 @@ class MockMCPClient extends TmdbApiClient {
       8: {
         id: 8,
         title: 'Documentary Truth',
-        overview: 'An eye-opening documentary about nature that reveals the beauty and complexity of our planet. A must-watch for anyone who cares about Earth.',
+        overview:
+          'An eye-opening documentary about nature that reveals the beauty and complexity of our planet. A must-watch for anyone who cares about Earth.',
         release_date: '2023-04-22',
         genres: [{ id: 99, name: 'Documentary' }],
         runtime: 88,
@@ -342,7 +361,9 @@ describe('End-to-End Integration Tests', () => {
         expect(rec.streamingPlatforms.length).toBeGreaterThan(0);
 
         // Verify Netflix is available
-        expect(rec.streamingPlatforms.some(p => p.name === 'Netflix')).toBe(true);
+        expect(rec.streamingPlatforms.some(p => p.name === 'Netflix')).toBe(
+          true
+        );
 
         // Verify runtime constraint
         expect(rec.runtime).toBeLessThanOrEqual(150);
@@ -356,7 +377,9 @@ describe('End-to-End Integration Tests', () => {
 
       // Verify logging occurred
       expect(logs.length).toBeGreaterThan(0);
-      expect(logs.some(log => log.includes('Starting recommendation pipeline'))).toBe(true);
+      expect(
+        logs.some(log => log.includes('Starting recommendation pipeline'))
+      ).toBe(true);
     });
 
     test('should handle multiple platform filters', async () => {
@@ -375,8 +398,9 @@ describe('End-to-End Integration Tests', () => {
 
       response.recommendations.forEach(rec => {
         // Should have at least one of the requested platforms
-        const hasRequestedPlatform = rec.streamingPlatforms.some((p: StreamingPlatform) =>
-          ['Netflix', 'Disney+', 'Prime Video'].includes(p.name)
+        const hasRequestedPlatform = rec.streamingPlatforms.some(
+          (p: StreamingPlatform) =>
+            ['Netflix', 'Disney+', 'Prime Video'].includes(p.name)
         );
         expect(hasRequestedPlatform).toBe(true);
 
@@ -400,7 +424,7 @@ describe('End-to-End Integration Tests', () => {
       // Should return recommendations (genre filtering may vary based on available movies)
       expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
       expect(response.recommendations.length).toBeLessThanOrEqual(5);
-      
+
       // At least one should ideally match the genre (but not enforced strictly with mock data)
       expect(response.recommendations.length).toBeGreaterThan(0);
     });
@@ -602,7 +626,7 @@ describe('End-to-End Integration Tests', () => {
       // Verify response was successful
       if (isAgentResponse(response)) {
         expect(response.recommendations.length).toBeGreaterThanOrEqual(3);
-        
+
         // API calls should have been made (implementation detail - may vary)
         // This is a lightweight check that doesn't enforce specific call counts
         const totalCalls = stats.discover + stats.details + stats.providers;
@@ -748,7 +772,11 @@ describe('End-to-End Integration Tests', () => {
       if (isAgentResponse(response)) {
         response.recommendations.forEach(rec => {
           // Platform filter
-          expect(rec.streamingPlatforms.some((p: StreamingPlatform) => p.name === 'Netflix')).toBe(true);
+          expect(
+            rec.streamingPlatforms.some(
+              (p: StreamingPlatform) => p.name === 'Netflix'
+            )
+          ).toBe(true);
 
           // Runtime filter
           expect(rec.runtime).toBeGreaterThanOrEqual(100);

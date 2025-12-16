@@ -60,7 +60,10 @@ describe('TmdbApiClient', () => {
       total_results: 1,
     };
     mockFetchOk(sample);
-    const res = await client.discoverMovies({ sort_by: 'popularity.desc', page: 1 });
+    const res = await client.discoverMovies({
+      sort_by: 'popularity.desc',
+      page: 1,
+    });
     expect(res).toEqual(sample);
     expect(global.fetch).toHaveBeenCalled();
     const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
@@ -109,7 +112,10 @@ describe('TmdbApiClient', () => {
     const sample = {
       id: 4,
       results: {
-        US: { link: 'https://tmdb', flatrate: [{ provider_id: 8, provider_name: 'Netflix' }] },
+        US: {
+          link: 'https://tmdb',
+          flatrate: [{ provider_id: 8, provider_name: 'Netflix' }],
+        },
       },
     };
     mockFetchOk(sample);
@@ -126,7 +132,9 @@ describe('TmdbApiClient', () => {
 
   test('handles non-200 response', async () => {
     mockFetchFail(404, 'Not Found');
-    await expect(client.getMovieDetails(999)).rejects.toThrow(/TMDb API error 404/);
+    await expect(client.getMovieDetails(999)).rejects.toThrow(
+      /TMDb API error 404/
+    );
   });
 
   test('handles invalid JSON', async () => {
@@ -134,7 +142,7 @@ describe('TmdbApiClient', () => {
       ok: true,
       status: 200,
       json: jest.fn().mockRejectedValue(new Error('bad json')),
-      text: jest.fn().mockResolvedValue('')
+      text: jest.fn().mockResolvedValue(''),
     } as any);
     await expect(client.searchMovies('x')).rejects.toThrow(/Invalid JSON/);
   });

@@ -1,5 +1,4 @@
 // src/filters.ts
-import { MovieDetails } from './tmdbApi';
 
 /**
  * Runtime constraints for filtering movies by duration
@@ -14,7 +13,7 @@ export interface RuntimeConstraints {
  */
 export interface YearRange {
   from?: number; // start year (inclusive)
-  to?: number;   // end year (inclusive)
+  to?: number; // end year (inclusive)
 }
 
 /**
@@ -30,15 +29,13 @@ export function filterByPlatforms(
   if (!movie.platforms || movie.platforms.length === 0) {
     return false;
   }
-  
+
   if (!userPlatforms || userPlatforms.length === 0) {
     return false;
   }
 
   // Check if any of the movie's platforms match any of the user's platforms
-  return movie.platforms.some(platform => 
-    userPlatforms.includes(platform)
-  );
+  return movie.platforms.some(platform => userPlatforms.includes(platform));
 }
 
 /**
@@ -87,7 +84,7 @@ export function filterByYear(
 
   // Extract year from release_date (format: YYYY-MM-DD)
   const releaseYear = parseInt(movie.release_date.split('-')[0], 10);
-  
+
   if (isNaN(releaseYear)) {
     return false;
   }
@@ -126,31 +123,28 @@ export interface FilterOptions {
  * @param options Filter options to apply
  * @returns Filtered array of movies that pass all specified filters
  */
-export function applyFilters<T extends { platforms?: string[]; runtime?: number; release_date?: string }>(
-  movies: T[],
-  options: FilterOptions
-): T[] {
+export function applyFilters<
+  T extends { platforms?: string[]; runtime?: number; release_date?: string },
+>(movies: T[], options: FilterOptions): T[] {
   let filtered = movies;
 
   // Apply platform filter if specified
   if (options.platforms && options.platforms.length > 0) {
-    filtered = filtered.filter(movie => 
+    filtered = filtered.filter(movie =>
       filterByPlatforms(movie, options.platforms!)
     );
   }
 
   // Apply runtime filter if specified
   if (options.runtime) {
-    filtered = filtered.filter(movie => 
+    filtered = filtered.filter(movie =>
       filterByRuntime(movie, options.runtime!)
     );
   }
 
   // Apply year filter if specified
   if (options.year !== undefined) {
-    filtered = filtered.filter(movie => 
-      filterByYear(movie, options.year!)
-    );
+    filtered = filtered.filter(movie => filterByYear(movie, options.year!));
   }
 
   return filtered;

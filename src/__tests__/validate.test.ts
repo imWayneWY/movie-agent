@@ -4,7 +4,7 @@ import {
   validatePlatforms,
   validateRuntime,
   validateYear,
-  validateYearRange
+  validateYearRange,
 } from '../validate';
 
 describe('validateRuntime', () => {
@@ -15,7 +15,9 @@ describe('validateRuntime', () => {
     expect(() => validateRuntime({})).not.toThrow();
   });
   it('throws if min > max', () => {
-    expect(() => validateRuntime({ min: 130, max: 120 })).toThrow(/min runtime/);
+    expect(() => validateRuntime({ min: 130, max: 120 })).toThrow(
+      /min runtime/
+    );
   });
 });
 
@@ -39,22 +41,30 @@ describe('validateYearRange', () => {
     expect(() => validateYearRange({ from: 2000, to: 2020 })).not.toThrow();
   });
   it('throws if from > to', () => {
-    expect(() => validateYearRange({ from: 2021, to: 2020 })).toThrow(/Year range invalid/);
+    expect(() => validateYearRange({ from: 2021, to: 2020 })).toThrow(
+      /Year range invalid/
+    );
   });
   it('throws if from or to is invalid', () => {
-    expect(() => validateYearRange({ from: 1700, to: 2020 })).toThrow(/Invalid year/);
-    expect(() => validateYearRange({ from: 2000, to: 2200 })).toThrow(/Invalid year/);
+    expect(() => validateYearRange({ from: 1700, to: 2020 })).toThrow(
+      /Invalid year/
+    );
+    expect(() => validateYearRange({ from: 2000, to: 2200 })).toThrow(
+      /Invalid year/
+    );
   });
 });
 
 describe('validatePlatforms', () => {
   it('accepts allowed platforms', () => {
-    expect(() => validatePlatforms(["Netflix", "Prime Video"])).not.toThrow();
+    expect(() => validatePlatforms(['Netflix', 'Prime Video'])).not.toThrow();
     expect(() => validatePlatforms(ALLOWED_PLATFORMS)).not.toThrow();
   });
   it('throws for any invalid platform', () => {
-    expect(() => validatePlatforms(["Netflix", "FakePlatform"])).toThrow(/Invalid platform/);
-    expect(() => validatePlatforms(["Unknown"])).toThrow(/Invalid platform/);
+    expect(() => validatePlatforms(['Netflix', 'FakePlatform'])).toThrow(
+      /Invalid platform/
+    );
+    expect(() => validatePlatforms(['Unknown'])).toThrow(/Invalid platform/);
   });
 });
 
@@ -65,7 +75,7 @@ describe('isValidPlatform', () => {
     }
   });
   it('returns false for not allowed platforms', () => {
-    expect(isValidPlatform("FakePlatform")).toBe(false);
-    expect(isValidPlatform("")).toBe(false);
+    expect(isValidPlatform('FakePlatform')).toBe(false);
+    expect(isValidPlatform('')).toBe(false);
   });
 });

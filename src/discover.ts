@@ -1,4 +1,7 @@
-import TmdbApiClient, { DiscoverMoviesParams, DiscoverMoviesResponse } from './tmdbApi';
+import TmdbApiClient, {
+  DiscoverMoviesParams,
+  DiscoverMoviesResponse,
+} from './tmdbApi';
 import { moodToGenres } from './mood';
 import { getCache, generateDiscoverCacheKey } from './cache';
 import config from './config';
@@ -32,27 +35,27 @@ export interface DiscoverInput {
  * This is a static mapping of common movie genres.
  */
 const GENRE_NAME_TO_ID: Record<string, number> = {
-  'Action': 28,
-  'Adventure': 12,
-  'Animation': 16,
-  'Biography': 99, // Note: Biography is not a standard TMDb genre, using Documentary
-  'Comedy': 35,
-  'Crime': 80,
-  'Documentary': 99,
-  'Drama': 18,
-  'Family': 10751,
-  'Fantasy': 14,
-  'History': 36,
-  'Horror': 27,
-  'Music': 10402,
-  'Musical': 10402, // Music and Musical map to the same ID
-  'Mystery': 9648,
-  'Romance': 10749,
+  Action: 28,
+  Adventure: 12,
+  Animation: 16,
+  Biography: 99, // Note: Biography is not a standard TMDb genre, using Documentary
+  Comedy: 35,
+  Crime: 80,
+  Documentary: 99,
+  Drama: 18,
+  Family: 10751,
+  Fantasy: 14,
+  History: 36,
+  Horror: 27,
+  Music: 10402,
+  Musical: 10402, // Music and Musical map to the same ID
+  Mystery: 9648,
+  Romance: 10749,
   'Science Fiction': 878,
-  'Thriller': 53,
+  Thriller: 53,
   'TV Movie': 10770,
-  'War': 10752,
-  'Western': 37,
+  War: 10752,
+  Western: 37,
 };
 
 /**
@@ -64,11 +67,11 @@ function genreNamesToIds(genreNames: string[]): string | undefined {
   const ids = genreNames
     .map(name => GENRE_NAME_TO_ID[name])
     .filter(id => id !== undefined);
-  
+
   if (ids.length === 0) {
     return undefined;
   }
-  
+
   return ids.join(',');
 }
 
@@ -77,7 +80,9 @@ function genreNamesToIds(genreNames: string[]): string | undefined {
  * @param input - User input with mood, genres, year range, runtime constraints, etc.
  * @returns DiscoverMoviesParams object ready for API call
  */
-export function buildDiscoverParams(input: DiscoverInput): DiscoverMoviesParams {
+export function buildDiscoverParams(
+  input: DiscoverInput
+): DiscoverMoviesParams {
   const params: DiscoverMoviesParams = {};
 
   // Handle genres - prioritize explicit genres over mood
@@ -136,21 +141,21 @@ export async function discoverMovies(
 ): Promise<DiscoverMoviesResponse> {
   const client = apiClient ?? new TmdbApiClient();
   const params = buildDiscoverParams(input);
-  
+
   // Check cache first
   const cache = getCache(config.CACHE_TTL);
   const cacheKey = generateDiscoverCacheKey(params);
   const cachedResult = cache.get<DiscoverMoviesResponse>(cacheKey);
-  
+
   if (cachedResult) {
     return cachedResult;
   }
-  
+
   // Cache miss - fetch from API
   const result = await client.discoverMovies(params);
-  
+
   // Store in cache
   cache.set(cacheKey, result);
-  
+
   return result;
 }

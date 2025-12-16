@@ -39,7 +39,7 @@ export class Cache {
    */
   get<T>(key: string): T | undefined {
     const entry = this.store.get(key);
-    
+
     if (!entry) {
       return undefined;
     }
@@ -145,6 +145,9 @@ export function generateDiscoverCacheKey(params: Record<string, any>): string {
  * @param region Region code
  * @returns Cache key string
  */
-export function generateProvidersCacheKey(movieId: number | string, region: string): string {
+export function generateProvidersCacheKey(
+  movieId: number | string,
+  region: string
+): string {
   return `providers:${movieId}:${region}`;
 }

@@ -20,8 +20,8 @@ export interface RankingInput {
   /** Release year preferences */
   year?: {
     preferred?: number; // Preferred year (exact match gets bonus)
-    from?: number;      // Minimum acceptable year
-    to?: number;        // Maximum acceptable year
+    from?: number; // Minimum acceptable year
+    to?: number; // Maximum acceptable year
   };
 }
 
@@ -49,11 +49,11 @@ export interface ScoringContext {
  * Scoring weights for different criteria
  */
 const WEIGHTS = {
-  GENRE_MATCH: 40,        // Mood/genre alignment
-  PLATFORM_MATCH: 30,     // Platform availability
-  RUNTIME_MATCH: 15,      // Runtime compatibility
-  YEAR_MATCH: 10,         // Release year preference
-  POPULARITY: 5,          // Popularity as tiebreaker
+  GENRE_MATCH: 40, // Mood/genre alignment
+  PLATFORM_MATCH: 30, // Platform availability
+  RUNTIME_MATCH: 15, // Runtime compatibility
+  YEAR_MATCH: 10, // Release year preference
+  POPULARITY: 5, // Popularity as tiebreaker
 };
 
 /**
@@ -87,7 +87,10 @@ function buildScoringContext(input: RankingInput): ScoringContext {
  * @param context - Scoring context
  * @returns Score between 0 and 1
  */
-function scoreGenreMatch(movie: RankableMovie, context: ScoringContext): number {
+function scoreGenreMatch(
+  movie: RankableMovie,
+  context: ScoringContext
+): number {
   if (context.targetGenres.length === 0) {
     return 0.5; // Neutral score if no genre preference
   }
@@ -111,7 +114,10 @@ function scoreGenreMatch(movie: RankableMovie, context: ScoringContext): number 
  * @param context - Scoring context
  * @returns Score between 0 and 1
  */
-function scorePlatformMatch(movie: RankableMovie, context: ScoringContext): number {
+function scorePlatformMatch(
+  movie: RankableMovie,
+  context: ScoringContext
+): number {
   if (context.userPlatforms.length === 0) {
     return 0.5; // Neutral score if no platform preference
   }
@@ -134,7 +140,10 @@ function scorePlatformMatch(movie: RankableMovie, context: ScoringContext): numb
  * @param context - Scoring context
  * @returns Score between 0 and 1
  */
-function scoreRuntimeMatch(movie: RankableMovie, context: ScoringContext): number {
+function scoreRuntimeMatch(
+  movie: RankableMovie,
+  context: ScoringContext
+): number {
   if (context.runtimeMin === undefined && context.runtimeMax === undefined) {
     return 0.5; // Neutral score if no runtime preference
   }
@@ -226,7 +235,7 @@ function scorePopularity(movie: RankableMovie): number {
   // Use logarithmic scale to normalize
   const maxPopularity = 1000;
   const normalized = Math.min(movie.popularity, maxPopularity) / maxPopularity;
-  
+
   return normalized;
 }
 

@@ -2,7 +2,6 @@ import {
   MovieRecommendation,
   StreamingPlatform,
   AgentResponse,
-  UserInput,
   ResponseMetadata,
 } from './types';
 
@@ -16,7 +15,7 @@ export function buildDescription(overview: string): string {
   // - Truncate to 50-100 words
   // - Avoid spoilers (could use AI or heuristics)
   // - Ensure complete sentences
-  
+
   if (!overview) {
     return 'No description available.';
   }
@@ -31,7 +30,7 @@ export function buildDescription(overview: string): string {
 
   // Truncate to max words and try to end at a sentence boundary
   const truncated = words.slice(0, maxWords).join(' ');
-  
+
   // Find the last sentence-ending punctuation within our limit
   const lastPeriod = truncated.lastIndexOf('.');
   const lastExclamation = truncated.lastIndexOf('!');
@@ -42,7 +41,7 @@ export function buildDescription(overview: string): string {
     // Check if we have enough words before this point
     const beforeSentenceEnd = truncated.substring(0, lastSentenceEnd + 1);
     const beforeWords = beforeSentenceEnd.split(/\s+/).length;
-    
+
     if (beforeWords >= minWords) {
       return beforeSentenceEnd;
     }
@@ -73,7 +72,7 @@ export function toRecommendation(
 ): MovieRecommendation {
   const releaseYear = new Date(movie.release_date).getFullYear();
   const description = buildDescription(movie.overview);
-  const genres = movie.genres.map((g) => g.name);
+  const genres = movie.genres.map(g => g.name);
 
   return {
     title: movie.title,

@@ -1,20 +1,20 @@
 // src/providers.ts
-import TmdbApiClient, { WatchProvidersResponse } from "./tmdbApi";
+import TmdbApiClient from './tmdbApi';
 import { getCache, generateProvidersCacheKey } from './cache';
 import config from './config';
 
 // Allowed platforms mapping (add more as needed)
 const PLATFORM_MAP: Record<string, string> = {
-  "Netflix": "Netflix",
-  "Amazon Prime Video": "Prime Video",
-  "Disney Plus": "Disney+",
-  "Crave": "Crave",
-  "Apple TV Plus": "Apple TV+",
-  "Paramount Plus": "Paramount+",
-  "CBC Gem": "CBC Gem",
-  "MUBI": "MUBI",
-  "hayu": "hayu",
-  "fuboTV": "fuboTV",
+  Netflix: 'Netflix',
+  'Amazon Prime Video': 'Prime Video',
+  'Disney Plus': 'Disney+',
+  Crave: 'Crave',
+  'Apple TV Plus': 'Apple TV+',
+  'Paramount Plus': 'Paramount+',
+  'CBC Gem': 'CBC Gem',
+  MUBI: 'MUBI',
+  hayu: 'hayu',
+  fuboTV: 'fuboTV',
   // Add more mappings as needed
 };
 
@@ -27,7 +27,7 @@ const PLATFORM_MAP: Record<string, string> = {
  */
 export async function getCanadianProviders(
   movieId: number | string,
-  region = "CA",
+  region = 'CA',
   client?: TmdbApiClient
 ): Promise<string[]> {
   try {
@@ -35,11 +35,11 @@ export async function getCanadianProviders(
     const cache = getCache(config.CACHE_TTL);
     const cacheKey = generateProvidersCacheKey(movieId, region);
     const cachedResult = cache.get<string[]>(cacheKey);
-    
+
     if (cachedResult) {
       return cachedResult;
     }
-    
+
     // Cache miss - fetch from API
     const apiClient = client ?? new TmdbApiClient();
     const data = await apiClient.getWatchProviders(Number(movieId));
@@ -61,10 +61,10 @@ export async function getCanadianProviders(
       .filter(Boolean);
     // Remove duplicates
     const result = Array.from(new Set(platforms));
-    
+
     // Store in cache
     cache.set(cacheKey, result);
-    
+
     return result;
   } catch {
     return [];
