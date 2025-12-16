@@ -18,7 +18,7 @@
     "test:e2e": "jest --testPathPattern=e2e.test.ts",
     "test:coverage": "jest --coverage --testPathIgnorePatterns=live.test.ts",
     "test:watch": "jest --watch --testPathIgnorePatterns=live.test.ts",
-    "test:ci": "jest --coverage --ci --maxWorkers=2 --testPathIgnorePatterns=live.test.ts",
+    "test:ci": "jest --coverage --ci --runInBand --testPathIgnorePatterns=live.test.ts",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",

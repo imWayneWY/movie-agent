@@ -45,6 +45,9 @@ jobs:
         env:
           # Add any environment variables needed for tests
           NODE_ENV: test
+          CI: true
+          # Limit Node.js memory to prevent OOM issues
+          NODE_OPTIONS: '--max-old-space-size=4096'
       
       - name: Upload coverage to Codecov
         if: matrix.node-version == '20.x'
