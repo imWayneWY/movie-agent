@@ -30,6 +30,8 @@ const config: Config = {
   setupFiles: ['<rootDir>/jest.setup.js'],
   // Test timeout for E2E tests
   testTimeout: 10000,
+  // Limit workers to prevent SIGSEGV in CI/CD environments
+  maxWorkers: process.env.CI ? 2 : '50%',
 };
 
 export default config;
