@@ -1,27 +1,22 @@
-/**
- * MovieAgent - A placeholder class for movie recommendation agent
- */
-export class MovieAgent {
-  private name: string;
+// src/index.ts - Main entry point for the movie-agent package
 
-  constructor(name = 'MovieAgent') {
-    this.name = name;
-  }
+// Export the main MovieAgent class
+export { MovieAgent } from './agent';
 
-  /**
-   * Get the agent's name
-   */
-  getName(): string {
-    return this.name;
-  }
+// Export the factory for easy configuration
+export { MovieAgentFactory, MovieAgentConfig } from './factory';
 
-  /**
-   * Placeholder method for future movie recommendations
-   */
-  async getRecommendations(): Promise<string[]> {
-    return ['Coming soon...'];
-  }
-}
+// Export types for external use
+export {
+  UserInput,
+  AgentResponse,
+  MovieRecommendation,
+  StreamingPlatform,
+  ErrorResponse,
+} from './types';
 
-// Default export for convenience
-export default MovieAgent;
+// Export TMDb API client for advanced use cases
+export { default as TmdbApiClient } from './tmdbApi';
+
+// Default export is the factory for convenience
+export { MovieAgentFactory as default } from './factory';
