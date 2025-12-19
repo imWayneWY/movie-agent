@@ -1,28 +1,35 @@
-import { MovieAgent } from '../index';
+import { MovieAgent } from '../agent';
+import { MovieAgentFactory } from '../factory';
+import TmdbApiClient from '../tmdbApi';
 
 describe('MovieAgent Bootstrap', () => {
   it('should load the MovieAgent class', () => {
     expect(MovieAgent).toBeDefined();
   });
 
-  it('should create a MovieAgent instance', () => {
-    const agent = new MovieAgent();
+  it('should create a MovieAgent instance with TmdbApiClient', () => {
+    const tmdbClient = new TmdbApiClient(
+      'https://api.themoviedb.org/3',
+      'test-api-key',
+      'CA'
+    );
+    const agent = new MovieAgent(tmdbClient);
     expect(agent).toBeInstanceOf(MovieAgent);
   });
 
-  it('should return the agent name', () => {
-    const agent = new MovieAgent('TestAgent');
-    expect(agent.getName()).toBe('TestAgent');
+  it('should create agent via factory', () => {
+    const agent = MovieAgentFactory.create({
+      tmdbApiKey: 'test-api-key',
+      tmdbRegion: 'CA',
+    });
+    expect(agent).toBeInstanceOf(MovieAgent);
   });
 
-  it('should return default name when none provided', () => {
-    const agent = new MovieAgent();
-    expect(agent.getName()).toBe('MovieAgent');
-  });
-
-  it('should return placeholder recommendations', async () => {
-    const agent = new MovieAgent();
-    const recommendations = await agent.getRecommendations();
-    expect(recommendations).toEqual(['Coming soon...']);
+  it('should throw error when factory called without API key', () => {
+    expect(() => {
+      MovieAgentFactory.create({
+        tmdbApiKey: '',
+      });
+    }).toThrow(/TMDB API key is required/);
   });
 });

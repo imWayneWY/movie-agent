@@ -22,11 +22,13 @@ describe('Config', () => {
     expect(cfg.MIN_RECOMMENDATIONS).toBe(3);
   });
 
-  it('should throw if TMDB_API_KEY is missing', () => {
+  it('should allow empty TMDB_API_KEY (validation happens in factory)', () => {
     process.env.TMDB_API_KEY = '';
     process.env.TMDB_BASE_URL = 'http://localhost';
     jest.resetModules();
-    expect(() => require('../config')).toThrow(/TMDB_API_KEY/);
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const cfg = require('../config').default;
+    expect(cfg.TMDB_API_KEY).toBe('');
   });
 
   it('should default TMDB_BASE_URL when missing', () => {
