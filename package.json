@@ -30,8 +30,16 @@
     "prebuild": "npm run clean"
   },
   "keywords": ["movie", "agent", "typescript"],
-  "author": "",
+  "author": "imWayneWY",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imWayneWY/movie-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/imWayneWY/movie-agent/issues"
+  },
+  "homepage": "https://github.com/imWayneWY/movie-agent#readme",
   "devDependencies": {
     "dotenv-cli": "^7.1.0",
     "@types/jest": "^29.5.11",

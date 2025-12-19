@@ -1,0 +1,43 @@
+# Source files
+src/
+tsconfig.json
+
+# Tests
+**/__tests__/
+**/*.test.ts
+**/*.spec.ts
+jest.config.ts
+jest.setup.js
+coverage/
+
+# Development files
+.env
+.env.*
+!.env.example
+
+# Documentation (optional - remove these lines if you want to include docs)
+docs/
+*.md
+!README.md
+
+# Git
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+node_modules/
+*.log
+npm-debug.log*
+
+# Linting/formatting
+.eslintrc.json
+.prettierrc
+
+# Misc
+spec.md
+CONTRIBUTING.md

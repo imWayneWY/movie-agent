@@ -6,21 +6,284 @@ An intelligent movie recommendation system that helps users discover movies base
 
 - 🎬 Personalized movie recommendations based on mood, genre, and preferences
 - 📺 Real-time streaming availability for Canadian platforms
-- ⚡ Fast responses using TMDb MCP integration
+- ⚡ Fast responses using TMDb API
 - 🎯 Smart filtering by runtime, release year, and streaming platforms
-- 🤖 Built with LangChain.js for intelligent agent orchestration
+- 📦 Easy integration into web applications and APIs
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
 - TMDb API key ([Get one here](https://www.themoviedb.org/settings/api))
-- OpenAI API key (for LangChain LLM)
 
 ## Installation
 
 ```bash
+npm install movie-agent
+```
+
+## Quick Start
+
+### Option 1: Using MovieAgentFactory.create() with explicit config (Recommended)
+
+```typescript
+import { MovieAgentFactory } from 'movie-agent';
+
+// Create agent with explicit configuration
+const agent = MovieAgentFactory.create({
+  tmdbApiKey: process.env.TMDB_API_KEY!,
+  tmdbRegion: 'CA',
+  debug: true, // Enable debug logging
+});
+
+// Get recommendations
+const recommendations = await agent.getRecommendations({
+  mood: 'excited',
+  genre: 'Action',
+  platforms: ['Netflix', 'Prime Video'],
+});
+
+console.log(recommendations);
+```
+
+### Option 2: Using MovieAgentFactory.fromEnv() convenience method
+
+```typescript
+import { MovieAgentFactory } from 'movie-agent';
+import dotenv from 'dotenv';
+
+// Load your .env file BEFORE creating the agent
+dotenv.config();
+
+// Create agent from environment variables
+const agent = MovieAgentFactory.fromEnv(true); // true = enable debug logging
+
+// Get recommendations
+const recommendations = await agent.getRecommendations({
+  mood: 'relaxed',
+  genre: ['Comedy', 'Romance'],
+  runtime: { max: 120 },
+});
+```
+
+## API Examples
+
+```typescript
+// Simple mood-based search
+await agent.getRecommendations({
+  mood: 'happy'
+});
+
+// Genre-specific with platform filter
+await agent.getRecommendations({
+  genre: 'Action',
+  platforms: ['Disney+']
+});
+
+// Complex filtering
+await agent.getRecommendations({
+  mood: 'adventurous',
+  platforms: ['Netflix', 'Prime Video'],
+  runtime: { min: 90, max: 150 },
+  releaseYear: { from: 2020, to: 2024 }
+});
+
+// Multiple genres
+await agent.getRecommendations({
+  genre: ['Comedy', 'Romance'],
+  platforms: ['Netflix'],
+  runtime: { max: 120 }
+});
+```
+
+## Integration Examples
+
+### Next.js API Route
+
+```typescript
+// pages/api/recommendations.ts
+import { MovieAgentFactory } from 'movie-agent';
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+const agent = MovieAgentFactory.create({
+  tmdbApiKey: process.env.TMDB_API_KEY!,
+  tmdbRegion: 'CA',
+});
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { mood, genre, platforms } = req.body;
+    const recommendations = await agent.getRecommendations({ mood, genre, platforms });
+    res.status(200).json(recommendations);
+  } catch (error) {
+    console.error('Error getting recommendations:', error);
+    res.status(500).json({ error: 'Failed to get recommendations' });
+  }
+}
+```
+
+### Express Server
+
+```typescript
+import express from 'express';
+import { MovieAgentFactory } from 'movie-agent';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const app = express();
+app.use(express.json());
+
+const agent = MovieAgentFactory.create({
+  tmdbApiKey: process.env.TMDB_API_KEY!,
+  tmdbRegion: 'CA',
+});
+
+app.post('/api/recommendations', async (req, res) => {
+  try {
+    const recommendations = await agent.getRecommendations(req.body);
+    res.json(recommendations);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to get recommendations' });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
+});
+```
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# Required
+TMDB_API_KEY=your_tmdb_api_key_here
+
+# Optional
+TMDB_REGION=CA
+CACHE_TTL=86400
+MAX_RECOMMENDATIONS=5
+MIN_RECOMMENDATIONS=3
+```
+
+### Input Parameters
+
+```typescript
+interface UserInput {
+  mood?: string;                    // e.g., 'excited', 'relaxed', 'thoughtful'
+  genre?: string | string[];        // e.g., 'Action' or ['Action', 'Thriller']
+  platforms?: string[];             // e.g., ['Netflix', 'Prime Video']
+  runtime?: {
+    min?: number;                   // Minimum runtime in minutes
+    max?: number;                   // Maximum runtime in minutes
+  };
+  releaseYear?: number | {          // Single year or range
+    from: number;
+    to: number;
+  };
+}
+```
+
+## Error Handling
+
+```typescript
+const result = await agent.getRecommendations(input);
+
+if ('error' in result) {
+  console.error(`Error: ${result.errorType} - ${result.message}`);
+  
+  switch (result.errorType) {
+    case 'INVALID_API_KEY':
+      // Handle invalid API key
+      break;
+    case 'RATE_LIMIT_EXCEEDED':
+      // Handle rate limit
+      break;
+    case 'NO_RESULTS':
+      // No movies found matching criteria
+      break;
+  }
+} else {
+  // Success! Use recommendations
+  console.log(result.recommendations);
+}
+```
+
+## Supported Streaming Platforms (Canada)
+
+- Netflix
+- Prime Video
+- Crave
+- Disney+
+- Apple TV+
+- Paramount+
+- And many more regional platforms
+
+## TypeScript Support
+
+The package is fully typed. Import types as needed:
+
+```typescript
+import {
+  MovieAgentFactory,
+  UserInput,
+  AgentResponse,
+  MovieRecommendation,
+  ErrorResponse,
+} from 'movie-agent';
+```
+
+## Response Format
+
+### Success Response
+
+```typescript
+interface AgentResponse {
+  recommendations: MovieRecommendation[];
+  metadata?: {
+    timestamp?: string;
+    inputParameters?: UserInput;
+  };
+}
+
+interface MovieRecommendation {
+  tmdbId: number;
+  title: string;
+  releaseYear: string;
+  runtime: number;
+  genres: string[];
+  overview: string;
+  streamingPlatforms: StreamingPlatform[];
+  matchReason: string;
+}
+```
+
+### Error Response
+
+```typescript
+interface ErrorResponse {
+  error: true;
+  errorType: 'VALIDATION_ERROR' | 'INVALID_API_KEY' | 'RATE_LIMIT_EXCEEDED' | 'NO_RESULTS' | 'UNKNOWN_ERROR';
+  message: string;
+  timestamp: string;
+}
+```
+
+## Development
+
+### For Contributors
+
+If you want to develop or modify this package:
+
+```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/imWayneWY/movie-agent.git
 cd movie-agent
 
 # Install dependencies
@@ -32,128 +295,7 @@ cp .env.example .env
 # Add your API keys to .env
 ```
 
-## Configuration
-
-Create a `.env` file with the following variables:
-
-```bash
-# TMDb MCP Configuration
-TMDB_API_KEY=your_tmdb_api_key_here
-TMDB_MCP_SERVER_URL=http://localhost:3000
-TMDB_REGION=CA
-
-# LangChain Configuration
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Application Settings
-CACHE_TTL=86400
-MAX_RECOMMENDATIONS=5
-MIN_RECOMMENDATIONS=3
-```
-
-## Usage
-
-### Quick Start
-
-```bash
-# Run the agent in development mode
-npm run dev
-
-# Run the agent in production mode
-npm start
-
-# Build for production
-npm run build
-npm run start:prod
-```
-
-### Programmatic Usage
-
-```javascript
-import { MovieAgent } from 'movie-agent';
-
-const agent = new MovieAgent();
-
-// Get recommendations based on mood
-const recommendations = await agent.getRecommendations({
-  mood: 'excited',
-  platforms: ['Netflix', 'Prime Video'],
-  runtime: { max: 150 },
-  releaseYear: { from: 2020, to: 2024 }
-});
-
-console.log(recommendations);
-```
-
-### API Examples
-
-```javascript
-// Example 1: Simple mood-based search
-await agent.getRecommendations({
-  mood: 'happy'
-});
-
-// Example 2: Genre-specific with platform filter
-await agent.getRecommendations({
-  genre: 'Action',
-  platforms: ['Disney+']
-});
-
-// Example 3: Complex filtering
-await agent.getRecommendations({
-  mood: 'adventurous',
-  platforms: ['Netflix', 'Prime Video', 'Crave'],
-  runtime: { min: 90, max: 150 },
-  releaseYear: 2023
-});
-
-// Example 4: Multiple genres
-await agent.getRecommendations({
-  genre: ['Comedy', 'Romance'],
-  platforms: ['Netflix'],
-  runtime: { max: 120 }
-});
-```
-
-## Architecture
-
-The Movie Agent uses:
-- **TMDb MCP** - Single source for movie metadata and streaming availability
-- **LangChain.js** - Agent orchestration and LLM integration
-- **Caching Layer** - 24-hour cache for improved performance
-- **Mood Mapper** - Intelligent mood-to-genre conversion
-
-See [spec.md](./spec.md) for detailed technical specifications.
-
-## Example
-
-```javascript
-const agent = new MovieAgent();
-
-const recommendations = await agent.getRecommendations({
-  mood: 'excited',
-  platforms: ['Netflix', 'Prime Video'],
-  runtime: { max: 150 }
-});
-
-console.log(recommendations);
-```
-
-## Supported Streaming Platforms (Canada)
-
-- Netflix
-- Prime Video
-- Crave
-- Disney+
-- Apple TV+
-- Paramount+
-- Hayu
-- Tubi
-- Pluto TV
-
-## Development
-
-### Code Quality
+### Building
 
 ```bash
 # Type checking
