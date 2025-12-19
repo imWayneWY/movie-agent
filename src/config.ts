@@ -35,7 +35,7 @@ const LLM_PROVIDER = getEnvVar('LLM_PROVIDER', false, 'gemini')! as
   | 'azure';
 
 const config: Config = {
-  TMDB_API_KEY: getEnvVar('TMDB_API_KEY', false) || '',  // Made optional - factory pattern handles this
+  TMDB_API_KEY: getEnvVar('TMDB_API_KEY', false) || '', // Made optional - factory pattern handles this
   TMDB_BASE_URL: getEnvVar(
     'TMDB_BASE_URL',
     false,
@@ -53,19 +53,10 @@ const config: Config = {
   ),
 
   LLM_PROVIDER,
-  GEMINI_API_KEY: getEnvVar('GEMINI_API_KEY', false),  // Made optional
-  AZURE_OPENAI_API_KEY: getEnvVar(
-    'AZURE_OPENAI_API_KEY',
-    false
-  ),
-  AZURE_OPENAI_ENDPOINT: getEnvVar(
-    'AZURE_OPENAI_ENDPOINT',
-    false
-  ),
-  AZURE_OPENAI_DEPLOYMENT: getEnvVar(
-    'AZURE_OPENAI_DEPLOYMENT',
-    false
-  ),
+  GEMINI_API_KEY: getEnvVar('GEMINI_API_KEY', false), // Made optional
+  AZURE_OPENAI_API_KEY: getEnvVar('AZURE_OPENAI_API_KEY', false),
+  AZURE_OPENAI_ENDPOINT: getEnvVar('AZURE_OPENAI_ENDPOINT', false),
+  AZURE_OPENAI_DEPLOYMENT: getEnvVar('AZURE_OPENAI_DEPLOYMENT', false),
   OPENAI_API_KEY: getEnvVar('OPENAI_API_KEY', false),
 };
 
