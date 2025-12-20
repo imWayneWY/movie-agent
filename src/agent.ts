@@ -19,6 +19,7 @@ import { getCanadianProviders } from './providers';
 import { applyFilters, FilterOptions } from './filters';
 import { rankMovies, RankableMovie, RankingInput } from './ranking';
 import { toRecommendation, formatResponse } from './format';
+import { LLMService } from './llm';
 
 /**
  * Extended movie type with platform information
@@ -33,16 +34,26 @@ interface MovieWithProviders extends MovieDetails {
 export class MovieAgent {
   private tmdbClient: TmdbApiClient;
   private logger: (message: string) => void;
+  private llmService: LLMService | null;
 
   /**
    * Creates a new MovieAgent instance
    * @param tmdbClient - Optional TMDb API client for testing
    * @param logger - Optional logger function for debugging
+   * @param enableLLM - Whether to enable LLM formatting (default: true if GEMINI_API_KEY is set)
    */
-  constructor(tmdbClient?: TmdbApiClient, logger?: (message: string) => void) {
+  constructor(
+    tmdbClient?: TmdbApiClient,
+    logger?: (message: string) => void,
+    enableLLM?: boolean
+  ) {
     this.tmdbClient = tmdbClient ?? new TmdbApiClient();
     this.logger =
       logger ?? ((message: string) => console.log(`[MovieAgent] ${message}`));
+
+    // Initialize LLM service if enabled and API key is available
+    const shouldEnableLLM = enableLLM ?? !!process.env.GEMINI_API_KEY;
+    this.llmService = shouldEnableLLM ? new LLMService() : null;
   }
 
   /**
@@ -456,6 +467,89 @@ export class MovieAgent {
         reason
       );
     });
+  }
+
+  /**
+   * Get recommendations with AI-formatted output (invoke mode)
+   * @param input - User input with mood, platforms, genres, runtime, and year preferences
+   * @returns Promise resolving to AI-formatted string output or error response
+   */
+  async invoke(input: UserInput): Promise<string | ErrorResponse> {
+    const response = await this.getRecommendations(input);
+
+    if ('error' in response) {
+      return response;
+    }
+
+    // Use LLM if available, otherwise use fallback formatting
+    if (this.llmService) {
+      try {
+        return await this.llmService.formatRecommendations(response, input);
+      } catch (error) {
+        this.logger(`LLM formatting failed, using fallback: ${error}`);
+        return this.fallbackFormat(response);
+      }
+    }
+
+    return this.fallbackFormat(response);
+  }
+
+  /**
+   * Get recommendations with AI-formatted streaming output
+   * @param input - User input with mood, platforms, genres, runtime, and year preferences
+   * @param onChunk - Callback function called for each chunk of streamed content
+   * @returns Promise resolving when streaming is complete, or error response
+   */
+  async stream(
+    input: UserInput,
+    onChunk: (chunk: string) => void
+  ): Promise<void | ErrorResponse> {
+    const response = await this.getRecommendations(input);
+
+    if ('error' in response) {
+      return response;
+    }
+
+    // Use LLM streaming if available, otherwise output fallback immediately
+    if (this.llmService) {
+      try {
+        await this.llmService.formatRecommendationsStream(
+          response,
+          input,
+          onChunk
+        );
+      } catch (error) {
+        this.logger(`LLM streaming failed, using fallback: ${error}`);
+        onChunk(this.fallbackFormat(response));
+      }
+    } else {
+      onChunk(this.fallbackFormat(response));
+    }
+  }
+
+  /**
+   * Fallback formatting when LLM is not available
+   */
+  private fallbackFormat(response: AgentResponse): string {
+    let output = '\\n🎬 Movie Recommendations\\n\\n';
+
+    response.recommendations.forEach((movie, index) => {
+      output += `${index + 1}. **${movie.title}** (${movie.releaseYear}) • ${movie.runtime} min\\n`;
+      output += `   Genres: ${movie.genres.join(', ')}\\n\\n`;
+      output += `   ${movie.description}\\n\\n`;
+
+      const platforms = movie.streamingPlatforms
+        .filter(p => p.available)
+        .map(p => p.name);
+
+      if (platforms.length > 0) {
+        output += `   📺 Available on: ${platforms.join(', ')}\\n`;
+      }
+
+      output += `   ✨ Why: ${movie.matchReason}\\n\\n`;
+    });
+
+    return output;
   }
 
   /**

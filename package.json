@@ -67,6 +67,8 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@langchain/core": "^1.1.7",
+    "@langchain/google-genai": "^2.1.2",
     "dotenv": "^16.4.5"
   }
 }

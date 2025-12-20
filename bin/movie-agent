@@ -10,6 +10,7 @@ const fs = require('fs');
 function parseArgs() {
   const args = process.argv.slice(2);
   const input = {};
+  let useStreaming = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -75,13 +76,15 @@ function parseArgs() {
           printUsage();
           process.exit(1);
       }
+    } else if (arg === '--stream') {
+      useStreaming = true;
     } else if (arg === '--help' || arg === '-h') {
       printUsage();
       process.exit(0);
     }
   }
 
-  return input;
+  return { input, useStreaming };
 }
 
 /**
@@ -100,11 +103,12 @@ Options:
   --year <number>           Specific release year
   --yearFrom <number>       Release year range start
   --yearTo <number>         Release year range end
+  --stream                  Enable streaming output (real-time generation)
   --help, -h                Show this help message
 
 Examples:
   movie-agent --mood excited --platforms Netflix
-  movie-agent --genre Action,Thriller --runtimeMax 120
+  movie-agent --genre Action,Thriller --runtimeMax 120 --stream
   movie-agent --mood relaxed --yearFrom 2020 --yearTo 2023
 `);
 }
@@ -173,10 +177,15 @@ Or create a .env.development file with:
       process.exit(1);
     }
 
+    // Check for Gemini API key (optional, agent will work without it)
+    if (!process.env.GEMINI_API_KEY) {
+      console.warn(`\n⚠️  Warning: Gemini API key not found. Using fallback formatting.\n`);
+    }
+
     // Now it's safe to load the agent module
     const { MovieAgent } = require('../dist/agent');
 
-    const input = parseArgs();
+    const { input, useStreaming } = parseArgs();
 
     // Show help if no arguments provided
     if (Object.keys(input).length === 0) {
@@ -184,19 +193,35 @@ Or create a .env.development file with:
       process.exit(0);
     }
 
-    console.log('\n🔍 Finding movie recommendations...\n');
+    console.log('\\n🔍 Finding movie recommendations...\\n');
 
     const agent = new MovieAgent();
-    const response = await agent.getRecommendations(input);
 
-    const output = formatOutput(response);
-    console.log(output);
+    if (useStreaming) {
+      // Use streaming output
+      const result = await agent.stream(input, (chunk) => {
+        process.stdout.write(chunk);
+      });
+      
+      if (result && 'error' in result) {
+        throw new Error(result.message);
+      }
+    } else {
+      // Use non-streaming output
+      const output = await agent.invoke(input);
+      
+      if (typeof output === 'object' && 'error' in output) {
+        throw new Error(output.message);
+      }
+      
+      console.log(output);
+    }
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
     
     if (error.message.includes('API') || error.message.includes('network')) {
-      console.error('\nPlease check your internet connection and TMDb API key.');
+      console.error('\nPlease check your internet connection and API keys.');
     } else if (error.message.includes('Invalid') || error.message.includes('validation')) {
       console.error('\nPlease check your input parameters and try again.');
       console.error('Use --help for usage information.');

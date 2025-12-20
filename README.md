@@ -5,6 +5,8 @@ An intelligent movie recommendation system that helps users discover movies base
 ## Features
 
 - 🎬 Personalized movie recommendations based on mood, genre, and preferences
+- 🤖 AI-powered output formatting with LangChain and Google Gemini
+- 🌊 Streaming and non-streaming output modes
 - 📺 Real-time streaming availability for Canadian platforms
 - ⚡ Fast responses using TMDb API
 - 🎯 Smart filtering by runtime, release year, and streaming platforms
@@ -14,6 +16,7 @@ An intelligent movie recommendation system that helps users discover movies base
 
 - Node.js (v18 or higher)
 - TMDb API key ([Get one here](https://www.themoviedb.org/settings/api))
+- Google Gemini API key (optional, for AI formatting) - [Get one here](https://aistudio.google.com/app/apikey)
 
 ## Installation
 
@@ -23,7 +26,56 @@ npm install movie-agent
 
 ## Quick Start
 
-### Option 1: Using MovieAgentFactory.create() with explicit config (Recommended)
+### Basic Usage - Get Structured Data
+
+```typescript
+import { MovieAgent } from 'movie-agent';
+
+// Create agent
+const agent = new MovieAgent();
+
+// Get structured recommendations
+const response = await agent.getRecommendations({
+  mood: 'excited',
+  platforms: ['Netflix', 'Prime Video'],
+});
+
+console.log(response.recommendations);
+```
+
+### AI-Formatted Output - Invoke Mode (Waits for complete response)
+
+```typescript
+import { MovieAgent } from 'movie-agent';
+
+const agent = new MovieAgent();
+
+// Get AI-formatted markdown output
+const output = await agent.invoke({
+  mood: 'happy',
+  platforms: ['Netflix'],
+});
+
+console.log(output); // Formatted markdown string
+```
+
+### AI-Formatted Output - Stream Mode (Real-time streaming)
+
+```typescript
+import { MovieAgent } from 'movie-agent';
+
+const agent = new MovieAgent();
+
+// Stream AI-formatted output in real-time
+await agent.stream({
+  mood: 'excited',
+  platforms: ['Netflix'],
+}, (chunk) => {
+  process.stdout.write(chunk); // or update your UI
+});
+```
+
+### Using with MovieAgentFactory
 
 ```typescript
 import { MovieAgentFactory } from 'movie-agent';
@@ -32,46 +84,114 @@ import { MovieAgentFactory } from 'movie-agent';
 const agent = MovieAgentFactory.create({
   tmdbApiKey: process.env.TMDB_API_KEY!,
   tmdbRegion: 'CA',
-  debug: true, // Enable debug logging
+  debug: true,
 });
 
-// Get recommendations
-const recommendations = await agent.getRecommendations({
-  mood: 'excited',
-  genre: 'Action',
-  platforms: ['Netflix', 'Prime Video'],
-});
-
-console.log(recommendations);
+// All three methods available: getRecommendations, invoke, stream
+const structured = await agent.getRecommendations({ mood: 'happy' });
+const formatted = await agent.invoke({ mood: 'happy' });
+await agent.stream({ mood: 'happy' }, (chunk) => console.log(chunk));
 ```
 
-### Option 2: Using MovieAgentFactory.fromEnv() convenience method
+## API Reference
+
+### MovieAgent Methods
+
+#### `getRecommendations(input: UserInput): Promise<AgentResponse | ErrorResponse>`
+Returns structured movie recommendations with metadata.
 
 ```typescript
-import { MovieAgentFactory } from 'movie-agent';
-import dotenv from 'dotenv';
-
-// Load your .env file BEFORE creating the agent
-dotenv.config();
-
-// Create agent from environment variables
-const agent = MovieAgentFactory.fromEnv(true); // true = enable debug logging
-
-// Get recommendations
-const recommendations = await agent.getRecommendations({
-  mood: 'relaxed',
-  genre: ['Comedy', 'Romance'],
-  runtime: { max: 120 },
+const response = await agent.getRecommendations({
+  mood: 'happy',
+  platforms: ['Netflix']
 });
+// Returns: { recommendations: [...], metadata: {...} }
+```
+
+#### `invoke(input: UserInput): Promise<string | ErrorResponse>`
+Returns AI-formatted markdown output (non-streaming). Waits for complete response before returning.
+
+```typescript
+const output = await agent.invoke({
+  mood: 'excited',
+  platforms: ['Netflix']
+});
+// Returns: Formatted markdown string
+```
+
+#### `stream(input: UserInput, onChunk: (chunk: string) => void): Promise<void | ErrorResponse>`
+Streams AI-formatted output in real-time. Best for interactive UIs.
+
+```typescript
+await agent.stream({
+  mood: 'relaxed',
+  platforms: ['Netflix']
+}, (chunk) => {
+  process.stdout.write(chunk);
+});
+```
+
+## Input Parameters
+
+```typescript
+interface UserInput {
+  mood?: string;                    // e.g., 'excited', 'relaxed', 'thoughtful', 'happy', 'scared'
+  genre?: string | string[];        // e.g., 'Action' or ['Action', 'Thriller']
+  platforms?: string[];             // e.g., ['Netflix', 'Prime Video', 'Disney+']
+  runtime?: {
+    min?: number;                   // Minimum runtime in minutes
+    max?: number;                   // Maximum runtime in minutes
+  };
+  releaseYear?: number | {          // Single year or range
+    from?: number;
+    to?: number;
+  };
+}
+```
+
+## Output Comparison
+
+### `getRecommendations()` - Structured Data
+```json
+{
+  "recommendations": [
+    {
+      "tmdbId": 123,
+      "title": "Movie Title",
+      "releaseYear": "2024",
+      "runtime": 120,
+      "genres": ["Action", "Adventure"],
+      "description": "...",
+      "streamingPlatforms": [...],
+      "matchReason": "..."
+    }
+  ],
+  "metadata": {...}
+}
+```
+
+### `invoke()` / `stream()` - AI-Formatted Markdown
+```markdown
+Hey there! 👋 Looking for some action-packed thrills? Here are your recommendations:
+
+### **Movie Title (2024)** - 120 minutes
+*Genres: Action, Adventure*
+A compelling description...
+📺 Available on: Netflix
+✨ Why: Perfect for your excited mood with thrilling action!
 ```
 
 ## API Examples
 
 ```typescript
 // Simple mood-based search
-await agent.getRecommendations({
-  mood: 'happy'
-});
+await agent.getRecommendations({ mood: 'happy' });
+
+// AI-formatted output
+await agent.invoke({ mood: 'happy' });
+
+// Streaming output
+await agent.stream({ mood: 'happy' }, (chunk) => console.log(chunk));
 
 // Genre-specific with platform filter
 await agent.getRecommendations({
@@ -97,17 +217,14 @@ await agent.getRecommendations({
 
 ## Integration Examples
 
-### Next.js API Route
+### Next.js API Route (Structured Data)
 
 ```typescript
 // pages/api/recommendations.ts
-import { MovieAgentFactory } from 'movie-agent';
+import { MovieAgent } from 'movie-agent';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const agent = MovieAgentFactory.create({
-  tmdbApiKey: process.env.TMDB_API_KEY!,
-  tmdbRegion: 'CA',
-});
+const agent = new MovieAgent();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -125,23 +242,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 ```
 
-### Express Server
+### Next.js API Route (AI-Formatted Streaming)
+
+```typescript
+// pages/api/recommendations-stream.ts
+import { MovieAgent } from 'movie-agent';
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+const agent = new MovieAgent();
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { mood, genre, platforms } = req.body;
+    
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    
+    await agent.stream({ mood, genre, platforms }, (chunk) => {
+      res.write(chunk);
+    });
+    
+    res.end();
+  } catch (error) {
+    console.error('Error streaming recommendations:', error);
+    res.status(500).json({ error: 'Failed to stream recommendations' });
+  }
+}
+```
+
+### Express Server (Streaming)
 
 ```typescript
 import express from 'express';
-import { MovieAgentFactory } from 'movie-agent';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { MovieAgent } from 'movie-agent';
 
 const app = express();
 app.use(express.json());
 
-const agent = MovieAgentFactory.create({
-  tmdbApiKey: process.env.TMDB_API_KEY!,
-  tmdbRegion: 'CA',
-});
+const agent = new MovieAgent();
 
+// Structured data endpoint
 app.post('/api/recommendations', async (req, res) => {
   try {
     const recommendations = await agent.getRecommendations(req.body);
@@ -152,9 +296,70 @@ app.post('/api/recommendations', async (req, res) => {
   }
 });
 
+// Streaming endpoint
+app.post('/api/recommendations/stream', async (req, res) => {
+  try {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    
+    await agent.stream(req.body, (chunk) => {
+      res.write(chunk);
+    });
+    
+    res.end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to stream recommendations' });
+  }
+});
+
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
+```
+
+### React Component with Streaming
+
+```typescript
+import { useState } from 'react';
+
+function MovieRecommendations() {
+  const [output, setOutput] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const getRecommendations = async () => {
+    setLoading(true);
+    setOutput('');
+
+    const response = await fetch('/api/recommendations/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mood: 'happy', platforms: ['Netflix'] }),
+    });
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value);
+      setOutput(prev => prev + chunk);
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div>
+      <button onClick={getRecommendations} disabled={loading}>
+        Get Recommendations
+      </button>
+      <div style={{ whiteSpace: 'pre-wrap' }}>{output}</div>
+    </div>
+  );
+}
 ```
 
 ## Configuration
@@ -165,12 +370,17 @@ app.listen(3000, () => {
 # Required
 TMDB_API_KEY=your_tmdb_api_key_here
 
+# Optional (for AI-formatted output)
+GEMINI_API_KEY=your_gemini_api_key_here
+
 # Optional
 TMDB_REGION=CA
 CACHE_TTL=86400
 MAX_RECOMMENDATIONS=5
 MIN_RECOMMENDATIONS=3
 ```
+
+**Note:** If `GEMINI_API_KEY` is not provided, the `invoke()` and `stream()` methods will use a fallback formatter.
 
 ### Input Parameters
 

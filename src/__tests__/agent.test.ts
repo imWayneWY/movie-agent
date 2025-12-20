@@ -630,4 +630,171 @@ describe('MovieAgent', () => {
       });
     });
   });
+
+  describe('invoke', () => {
+    it('should return formatted string output without LLM service', async () => {
+      const input: UserInput = {
+        mood: 'excited',
+        platforms: ['Netflix'],
+      };
+
+      const result = await agent.invoke(input);
+
+      expect(typeof result).toBe('string');
+      expect(result).toContain('🎬 Movie Recommendations');
+      expect(result).toContain('The Grand Adventure');
+    });
+
+    it('should return error response when validation fails', async () => {
+      const input: UserInput = {
+        platforms: ['InvalidPlatform'],
+      };
+
+      const result = await agent.invoke(input);
+
+      if (typeof result === 'string') {
+        fail('Expected error response');
+      }
+
+      expect(result.error).toBe(true);
+      expect(result.errorType).toBe('VALIDATION_ERROR');
+    });
+  });
+
+  describe('stream', () => {
+    it('should stream formatted output without LLM service', async () => {
+      const input: UserInput = {
+        mood: 'excited',
+        platforms: ['Netflix'],
+      };
+
+      const chunks: string[] = [];
+      const onChunk = jest.fn((chunk: string) => chunks.push(chunk));
+
+      const result = await agent.stream(input, onChunk);
+
+      expect(result).toBeUndefined();
+      expect(onChunk).toHaveBeenCalled();
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks.join('')).toContain('🎬 Movie Recommendations');
+      expect(chunks.join('')).toContain('The Grand Adventure');
+    });
+
+    it('should return error response when validation fails', async () => {
+      const input: UserInput = {
+        platforms: ['InvalidPlatform'],
+      };
+
+      const chunks: string[] = [];
+      const onChunk = jest.fn((chunk: string) => chunks.push(chunk));
+
+      const result = await agent.stream(input, onChunk);
+
+      if (result === undefined) {
+        fail('Expected error response');
+      }
+
+      expect(result.error).toBe(true);
+      expect(result.errorType).toBe('VALIDATION_ERROR');
+      expect(onChunk).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('fallbackFormat', () => {
+    it('should format complete response with all fields', async () => {
+      const input: UserInput = {
+        mood: 'excited',
+        platforms: ['Netflix'],
+      };
+
+      const result = await agent.invoke(input);
+
+      expect(typeof result).toBe('string');
+      expect(result).toContain('🎬 Movie Recommendations');
+      expect(result).toContain('1. **');
+      expect(result).toContain('Genres:');
+      expect(result).toContain('📺 Available on:');
+      expect(result).toContain('✨ Why:');
+    });
+
+    it('should handle movies without streaming platforms', async () => {
+      // Create a mock client that returns movies with no platforms
+      class NoPlatformsMockClient extends MockTmdbClient {
+        async getWatchProviders(): Promise<WatchProvidersResponse> {
+          return {
+            id: 1,
+            results: {}, // No providers
+          };
+        }
+      }
+
+      const noPlatformsAgent = new MovieAgent(new NoPlatformsMockClient());
+      const result = await noPlatformsAgent.invoke({ mood: 'happy' });
+
+      expect(typeof result).toBe('string');
+      expect(result).toContain('🎬 Movie Recommendations');
+      // Should not show streaming section if no platforms available
+    });
+
+    it('should format multiple recommendations', async () => {
+      const input: UserInput = {
+        mood: 'excited',
+      };
+
+      const result = await agent.invoke(input);
+
+      expect(typeof result).toBe('string');
+      expect(result).toMatch(/1\. \*\*/);
+      expect(result).toMatch(/2\. \*\*/);
+      expect(result).toMatch(/3\. \*\*/);
+    });
+  });
+
+  describe('generateMatchReason', () => {
+    it('should generate match reason for genre matches', async () => {
+      const input: UserInput = {
+        mood: 'excited',
+      };
+
+      const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response))
+        fail(`Expected AgentResponse but got error: ${response.errorType}`);
+
+      expect(response.recommendations[0].matchReason).toBeTruthy();
+      expect(response.recommendations[0].matchReason.length).toBeGreaterThan(0);
+    });
+
+    it('should include platform availability in match reason', async () => {
+      const input: UserInput = {
+        mood: 'excited',
+        platforms: ['Netflix'],
+      };
+
+      const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response))
+        fail(`Expected AgentResponse but got error: ${response.errorType}`);
+
+      // At least one recommendation should mention the platform
+      const hasPlatformMention = response.recommendations.some(rec =>
+        rec.matchReason.toLowerCase().includes('netflix')
+      );
+      expect(hasPlatformMention).toBe(true);
+    });
+
+    it('should mention popularity for highly rated movies', async () => {
+      const input: UserInput = {
+        mood: 'excited',
+      };
+
+      const response = await agent.getRecommendations(input);
+      if (!isAgentResponse(response))
+        fail(`Expected AgentResponse but got error: ${response.errorType}`);
+
+      // Some recommendations should mention being highly rated
+      const hasRatingMention = response.recommendations.some(rec =>
+        rec.matchReason.toLowerCase().includes('rated')
+      );
+      expect(hasRatingMention).toBe(true);
+    });
+  });
 });
