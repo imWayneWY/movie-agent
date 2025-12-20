@@ -1,28 +1,65 @@
 // src/llm.ts
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { AzureChatOpenAI } from '@langchain/openai';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { AgentResponse } from './types';
+import config from './config';
 
 /**
  * LLM service for generating formatted movie recommendation output
  */
 export class LLMService {
-  private model: ChatGoogleGenerativeAI;
+  private model: ChatGoogleGenerativeAI | AzureChatOpenAI;
   private chain: any;
 
-  constructor(apiKey?: string) {
-    const geminiApiKey = apiKey || process.env.GEMINI_API_KEY;
-
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY is required for LLM service');
+  constructor(
+    apiKey?: string,
+    provider?: 'gemini' | 'azure',
+    azureConfig?: {
+      endpoint?: string;
+      deployment?: string;
     }
+  ) {
+    const llmProvider = provider || config.LLM_PROVIDER;
 
-    this.model = new ChatGoogleGenerativeAI({
-      apiKey: geminiApiKey,
-      model: 'gemini-2.5-flash',
-      temperature: 0.7,
-    });
+    if (llmProvider === 'azure') {
+      // Azure OpenAI Configuration
+      const azureApiKey = apiKey || config.AZURE_OPENAI_API_KEY;
+      const azureEndpoint =
+        azureConfig?.endpoint || config.AZURE_OPENAI_ENDPOINT;
+      const azureDeployment =
+        azureConfig?.deployment || config.AZURE_OPENAI_DEPLOYMENT;
+
+      if (!azureApiKey || !azureEndpoint || !azureDeployment) {
+        throw new Error(
+          'AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT are required for Azure OpenAI'
+        );
+      }
+
+      this.model = new AzureChatOpenAI({
+        azureOpenAIApiKey: azureApiKey,
+        azureOpenAIApiInstanceName: azureEndpoint
+          .replace(/^https?:\/\//, '')
+          .replace(/\.openai\.azure\.com\/?$/, ''),
+        azureOpenAIApiDeploymentName: azureDeployment,
+        azureOpenAIApiVersion: '2024-08-01-preview',
+        temperature: 0.7,
+      });
+    } else {
+      // Gemini Configuration (default)
+      const geminiApiKey = apiKey || config.GEMINI_API_KEY;
+
+      if (!geminiApiKey) {
+        throw new Error('GEMINI_API_KEY is required for LLM service');
+      }
+
+      this.model = new ChatGoogleGenerativeAI({
+        apiKey: geminiApiKey,
+        model: 'gemini-2.5-flash',
+        temperature: 0.7,
+      });
+    }
 
     // Create the prompt template
     const promptTemplate = PromptTemplate.fromTemplate(`
@@ -213,9 +250,9 @@ ${index + 1}. ${movie.title} (${movie.releaseYear})
  */
 let llmServiceInstance: LLMService | null = null;
 
-export function getLLMService(): LLMService {
+export function getLLMService(provider?: 'gemini' | 'azure'): LLMService {
   if (!llmServiceInstance) {
-    llmServiceInstance = new LLMService();
+    llmServiceInstance = new LLMService(undefined, provider);
   }
   return llmServiceInstance;
 }

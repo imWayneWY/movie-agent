@@ -2,9 +2,32 @@
 import { LLMService, getLLMService } from '../llm';
 import { AgentResponse } from '../types';
 
+// Mock the config module to read from process.env at runtime
+jest.mock('../config', () => ({
+  __esModule: true,
+  get default() {
+    return {
+      LLM_PROVIDER: (process.env.LLM_PROVIDER || 'gemini') as
+        | 'gemini'
+        | 'azure',
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+      AZURE_OPENAI_API_KEY: process.env.AZURE_OPENAI_API_KEY,
+      AZURE_OPENAI_ENDPOINT: process.env.AZURE_OPENAI_ENDPOINT,
+      AZURE_OPENAI_DEPLOYMENT: process.env.AZURE_OPENAI_DEPLOYMENT,
+    };
+  },
+}));
+
 // Mock the langchain modules
 jest.mock('@langchain/google-genai', () => ({
   ChatGoogleGenerativeAI: jest.fn().mockImplementation(() => ({
+    invoke: jest.fn(),
+    stream: jest.fn(),
+  })),
+}));
+
+jest.mock('@langchain/openai', () => ({
+  AzureChatOpenAI: jest.fn().mockImplementation(() => ({
     invoke: jest.fn(),
     stream: jest.fn(),
   })),
@@ -82,6 +105,7 @@ describe('LLMService', () => {
 
     it('should throw error if no API key is provided', () => {
       delete process.env.GEMINI_API_KEY;
+      delete process.env.AZURE_OPENAI_API_KEY;
       expect(() => new LLMService()).toThrow(
         'GEMINI_API_KEY is required for LLM service'
       );
@@ -354,6 +378,11 @@ describe('LLMService', () => {
   });
 
   describe('getLLMService', () => {
+    beforeEach(() => {
+      // Ensure GEMINI_API_KEY is set for singleton test
+      process.env.GEMINI_API_KEY = 'test-api-key';
+    });
+
     it('should return singleton instance', () => {
       const service1 = getLLMService();
       const service2 = getLLMService();

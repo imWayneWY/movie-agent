@@ -16,7 +16,9 @@ An intelligent movie recommendation system that helps users discover movies base
 
 - Node.js (v18 or higher)
 - TMDb API key ([Get one here](https://www.themoviedb.org/settings/api))
-- Google Gemini API key (optional, for AI formatting) - [Get one here](https://aistudio.google.com/app/apikey)
+- LLM API key for AI formatting (optional):
+  - Google Gemini API key - [Get one here](https://aistudio.google.com/app/apikey)
+  - **OR** Azure OpenAI credentials - [Learn more](https://azure.microsoft.com/en-us/products/ai-services/openai-service)
 
 ## Installation
 
@@ -80,10 +82,23 @@ await agent.stream({
 ```typescript
 import { MovieAgentFactory } from 'movie-agent';
 
-// Create agent with explicit configuration
+// Create agent with explicit configuration (Gemini)
 const agent = MovieAgentFactory.create({
   tmdbApiKey: process.env.TMDB_API_KEY!,
   tmdbRegion: 'CA',
+  llmProvider: 'gemini',
+  geminiApiKey: process.env.GEMINI_API_KEY,
+  debug: true,
+});
+
+// Or use Azure OpenAI
+const agentWithAzure = MovieAgentFactory.create({
+  tmdbApiKey: process.env.TMDB_API_KEY!,
+  tmdbRegion: 'CA',
+  llmProvider: 'azure',
+  azureOpenAiApiKey: process.env.AZURE_OPENAI_API_KEY,
+  azureOpenAiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
+  azureOpenAiDeployment: process.env.AZURE_OPENAI_DEPLOYMENT,
   debug: true,
 });
 
@@ -370,8 +385,16 @@ function MovieRecommendations() {
 # Required
 TMDB_API_KEY=your_tmdb_api_key_here
 
-# Optional (for AI-formatted output)
+# LLM Provider Selection (optional)
+LLM_PROVIDER=gemini  # Options: gemini, azure
+
+# Option 1: Google Gemini (for AI-formatted output)
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# Option 2: Azure OpenAI (for AI-formatted output)
+AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=your_deployment_name
 
 # Optional
 TMDB_REGION=CA
@@ -380,7 +403,45 @@ MAX_RECOMMENDATIONS=5
 MIN_RECOMMENDATIONS=3
 ```
 
-**Note:** If `GEMINI_API_KEY` is not provided, the `invoke()` and `stream()` methods will use a fallback formatter.
+**Note:** If no LLM API key is provided, the `invoke()` and `stream()` methods will use a fallback formatter.
+
+### LLM Provider Configuration
+
+The package supports multiple LLM providers for AI-formatted output:
+
+#### Google Gemini (Default)
+```typescript
+const agent = MovieAgentFactory.create({
+  tmdbApiKey: 'your-tmdb-key',
+  llmProvider: 'gemini',
+  geminiApiKey: 'your-gemini-key',
+});
+```
+
+#### Azure OpenAI
+```typescript
+const agent = MovieAgentFactory.create({
+  tmdbApiKey: 'your-tmdb-key',
+  llmProvider: 'azure',
+  azureOpenAiApiKey: 'your-azure-key',
+  azureOpenAiEndpoint: 'https://your-resource.openai.azure.com/',
+  azureOpenAiDeployment: 'your-deployment-name',
+});
+```
+
+#### Using Environment Variables
+```bash
+# Set LLM_PROVIDER in .env
+LLM_PROVIDER=azure
+AZURE_OPENAI_API_KEY=your_key
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=gpt-4
+```
+
+```typescript
+// Automatically uses Azure OpenAI from environment
+const agent = MovieAgentFactory.fromEnv();
+```
 
 ### Input Parameters
 
@@ -671,4 +732,4 @@ MIT
 
 - [The Movie Database (TMDb)](https://www.themoviedb.org/) for movie data and streaming availability
 - [LangChain.js](https://js.langchain.com/) for agent framework
-- [OpenAI](https://openai.com/) for LLM capabilities
+- [Google Gemini](https://ai.google.dev/) and [Azure OpenAI](https://azure.microsoft.com/en-us/products/ai-services/openai-service) for LLM capabilities

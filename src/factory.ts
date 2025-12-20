@@ -79,8 +79,37 @@ export class MovieAgentFactory {
       ? (message: string) => console.log(`[MovieAgent] ${message}`)
       : undefined;
 
+    // Determine LLM enablement and get the appropriate API key
+    const llmProvider = config.llmProvider;
+    let llmApiKey: string | undefined;
+    let enableLLM = false;
+    let azureConfig: { endpoint?: string; deployment?: string } | undefined;
+
+    if (llmProvider === 'azure' && config.azureOpenAiApiKey) {
+      llmApiKey = config.azureOpenAiApiKey;
+      azureConfig = {
+        endpoint: config.azureOpenAiEndpoint,
+        deployment: config.azureOpenAiDeployment,
+      };
+      enableLLM = true;
+    } else if (llmProvider === 'gemini' && config.geminiApiKey) {
+      llmApiKey = config.geminiApiKey;
+      enableLLM = true;
+    } else if (config.geminiApiKey) {
+      // Default to Gemini if API key is provided but no provider specified
+      llmApiKey = config.geminiApiKey;
+      enableLLM = true;
+    }
+
     // Create and return MovieAgent instance
-    return new MovieAgent(tmdbClient, logger);
+    return new MovieAgent(
+      tmdbClient,
+      logger,
+      enableLLM,
+      llmProvider,
+      llmApiKey,
+      azureConfig
+    );
   }
 
   /**

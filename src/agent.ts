@@ -41,11 +41,17 @@ export class MovieAgent {
    * @param tmdbClient - Optional TMDb API client for testing
    * @param logger - Optional logger function for debugging
    * @param enableLLM - Whether to enable LLM formatting (default: true if GEMINI_API_KEY is set)
+   * @param llmProvider - LLM provider to use ('gemini' or 'azure')
+   * @param llmApiKey - API key for the LLM provider
+   * @param azureConfig - Azure OpenAI configuration (endpoint and deployment)
    */
   constructor(
     tmdbClient?: TmdbApiClient,
     logger?: (message: string) => void,
-    enableLLM?: boolean
+    enableLLM?: boolean,
+    llmProvider?: 'gemini' | 'azure',
+    llmApiKey?: string,
+    azureConfig?: { endpoint?: string; deployment?: string }
   ) {
     this.tmdbClient = tmdbClient ?? new TmdbApiClient();
     this.logger =
@@ -53,7 +59,9 @@ export class MovieAgent {
 
     // Initialize LLM service if enabled and API key is available
     const shouldEnableLLM = enableLLM ?? !!process.env.GEMINI_API_KEY;
-    this.llmService = shouldEnableLLM ? new LLMService() : null;
+    this.llmService = shouldEnableLLM
+      ? new LLMService(llmApiKey, llmProvider, azureConfig)
+      : null;
   }
 
   /**
