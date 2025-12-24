@@ -1,5 +1,5 @@
 // src/providers.ts
-import TmdbApiClient from './tmdbApi';
+import TmdbApiClient, { WatchProvidersResponse } from './tmdbApi';
 import { getCache, generateProvidersCacheKey } from './cache';
 import config from './config';
 
@@ -17,6 +17,38 @@ const PLATFORM_MAP: Record<string, string> = {
   fuboTV: 'fuboTV',
   // Add more mappings as needed
 };
+
+/**
+ * Extracts and normalizes platform names from a WatchProvidersResponse.
+ * This is used when watch providers are fetched via append_to_response.
+ * @param providersData WatchProvidersResponse data (can be from append_to_response)
+ * @param region Region code (default: "CA")
+ * @returns Array of normalized platform names
+ */
+export function extractPlatformsFromProviders(
+  providersData: WatchProvidersResponse | undefined,
+  region = 'CA'
+): string[] {
+  if (
+    !providersData ||
+    !providersData.results ||
+    !providersData.results[region]
+  ) {
+    return [];
+  }
+  const regionData = providersData.results[region];
+  // Only consider 'flatrate' (subscription) providers
+  const flatrate = regionData.flatrate || [];
+  if (!Array.isArray(flatrate) || flatrate.length === 0) {
+    return [];
+  }
+  // Map provider names to allowed platforms
+  const platforms = flatrate
+    .map((p: any) => PLATFORM_MAP[p.provider_name])
+    .filter(Boolean);
+  // Remove duplicates
+  return Array.from(new Set(platforms));
+}
 
 /**
  * Fetch and normalize Canadian watch providers for a movie.

@@ -13,6 +13,7 @@ import {
 } from '../types';
 import TmdbApiClient, {
   MovieDetails,
+  MovieDetailsWithProviders,
   DiscoverMoviesResponse,
   WatchProvidersResponse,
 } from '../tmdbApi';
@@ -262,6 +263,30 @@ class MockMCPClient extends TmdbApiClient {
       throw new Error(`Movie with ID ${movieId} not found`);
     }
     return details;
+  }
+
+  /**
+   * Mock movie details with embedded watch providers
+   * This combines getMovieDetails and getWatchProviders into a single call
+   */
+  async getMovieDetailsWithProviders(
+    movieId: number
+  ): Promise<MovieDetailsWithProviders> {
+    this.callCount.details++;
+    this.callCount.providers++;
+
+    const details = await this.getMovieDetails(movieId);
+    // Decrement since getMovieDetails already incremented
+    this.callCount.details--;
+
+    const providers = await this.getWatchProviders(movieId);
+    // Decrement since getWatchProviders already incremented
+    this.callCount.providers--;
+
+    return {
+      ...details,
+      'watch/providers': providers,
+    };
   }
 
   /**

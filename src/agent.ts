@@ -14,8 +14,11 @@ import {
 } from './validate';
 import { moodToGenres } from './mood';
 import { discoverMovies, DiscoverInput } from './discover';
-import TmdbApiClient, { MovieDetails } from './tmdbApi';
-import { getCanadianProviders } from './providers';
+import TmdbApiClient, {
+  MovieDetails,
+  MovieDetailsWithProviders,
+} from './tmdbApi';
+import { extractPlatformsFromProviders } from './providers';
 import { applyFilters, FilterOptions } from './filters';
 import { rankMovies, RankableMovie, RankingInput } from './ranking';
 import { toRecommendation, formatResponse } from './format';
@@ -84,8 +87,8 @@ export class MovieAgent {
       const genres = this.resolveGenres(input);
       this.logger(`Resolved genres: ${genres.join(', ')}`);
 
-      // Step 3: Discover candidate movies via TMDb
-      this.logger('Step 3: Discovering candidate movies');
+      // Step 3: Discover candidate movies via TMDb (with watch providers)
+      this.logger('Step 3: Discovering candidate movies with providers');
       const candidates = await this.discoverCandidates(input, genres);
       this.logger(`Found ${candidates.length} candidate movies`);
 
@@ -96,10 +99,12 @@ export class MovieAgent {
         );
       }
 
-      // Step 4: Fetch watch providers for each candidate (region CA)
-      this.logger('Step 4: Fetching watch providers');
-      const moviesWithProviders = await this.fetchWatchProviders(candidates);
-      this.logger(`Fetched providers for ${moviesWithProviders.length} movies`);
+      // Step 4: Extract watch providers from embedded data (region CA)
+      this.logger('Step 4: Extracting watch providers');
+      const moviesWithProviders = this.extractWatchProviders(candidates);
+      this.logger(
+        `${moviesWithProviders.length} movies have streaming providers`
+      );
 
       // Step 5: Apply filters (platforms, runtime, year)
       this.logger('Step 5: Applying filters');
@@ -283,7 +288,7 @@ export class MovieAgent {
   private async discoverCandidates(
     input: UserInput,
     genres: string[]
-  ): Promise<MovieDetails[]> {
+  ): Promise<MovieDetailsWithProviders[]> {
     // Build discover input
     const discoverInput: DiscoverInput = {
       genres: genres.length > 0 ? genres : undefined,
@@ -313,9 +318,10 @@ export class MovieAgent {
     // Limit to top 20 to avoid excessive API calls
     const topCandidates = response.results.slice(0, 20);
 
-    // Fetch details for each movie
+    // Fetch details with watch providers in a single call per movie
+    // This uses append_to_response to reduce API calls by 50%
     const detailsPromises = topCandidates.map(movie =>
-      this.tmdbClient.getMovieDetails(movie.id)
+      this.tmdbClient.getMovieDetailsWithProviders(movie.id)
     );
 
     const details = await Promise.all(detailsPromises);
@@ -323,22 +329,20 @@ export class MovieAgent {
   }
 
   /**
-   * Fetches watch providers for each candidate movie
-   * @param candidates - Array of movie details
+   * Extracts watch providers from movie details and filters to those with providers
+   * @param candidates - Array of movie details with embedded providers
    * @returns Array of movies with platform information
    */
-  private async fetchWatchProviders(
-    candidates: MovieDetails[]
-  ): Promise<MovieWithProviders[]> {
+  private extractWatchProviders(
+    candidates: MovieDetailsWithProviders[]
+  ): MovieWithProviders[] {
     const moviesWithProviders: MovieWithProviders[] = [];
 
-    // Fetch providers for each movie
     for (const movie of candidates) {
       try {
-        const platforms = await getCanadianProviders(
-          movie.id,
-          'CA',
-          this.tmdbClient
+        const platforms = extractPlatformsFromProviders(
+          movie['watch/providers'],
+          'CA'
         );
 
         // Only include movies with at least one provider
@@ -351,7 +355,7 @@ export class MovieAgent {
       } catch (error) {
         // Log error but continue with other movies
         this.logger(
-          `Failed to fetch providers for movie ${movie.id}: ${error instanceof Error ? error.message : String(error)}`
+          `Failed to extract providers for movie ${movie.id}: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }

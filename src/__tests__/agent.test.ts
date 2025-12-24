@@ -3,6 +3,7 @@ import { MovieAgent } from '../agent';
 import { UserInput, AgentResponse, ErrorResponse } from '../types';
 import TmdbApiClient, {
   MovieDetails,
+  MovieDetailsWithProviders,
   DiscoverMoviesResponse,
   WatchProvidersResponse,
 } from '../tmdbApi';
@@ -152,6 +153,17 @@ class MockTmdbClient extends TmdbApiClient {
     }
 
     return details;
+  }
+
+  async getMovieDetailsWithProviders(
+    movieId: number
+  ): Promise<MovieDetailsWithProviders> {
+    const details = await this.getMovieDetails(movieId);
+    const providers = await this.getWatchProviders(movieId);
+    return {
+      ...details,
+      'watch/providers': providers,
+    };
   }
 
   async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
@@ -503,8 +515,10 @@ describe('MovieAgent', () => {
       expect(logMessages).toContain('Starting recommendation pipeline');
       expect(logMessages).toContain('Step 1: Validating input');
       expect(logMessages).toContain('Step 2: Resolving genres');
-      expect(logMessages).toContain('Step 3: Discovering candidate movies');
-      expect(logMessages).toContain('Step 4: Fetching watch providers');
+      expect(logMessages).toContain(
+        'Step 3: Discovering candidate movies with providers'
+      );
+      expect(logMessages).toContain('Step 4: Extracting watch providers');
       expect(logMessages).toContain('Step 5: Applying filters');
       expect(logMessages).toContain('Step 6: Ranking and selecting top movies');
       expect(logMessages).toContain('Step 7: Formatting output');
@@ -726,14 +740,24 @@ describe('MovieAgent', () => {
             results: {}, // No providers
           };
         }
+
+        async getMovieDetailsWithProviders(
+          movieId: number
+        ): Promise<MovieDetailsWithProviders> {
+          const details = await this.getMovieDetails(movieId);
+          return {
+            ...details,
+            'watch/providers': { id: movieId, results: {} }, // No providers
+          };
+        }
       }
 
       const noPlatformsAgent = new MovieAgent(new NoPlatformsMockClient());
       const result = await noPlatformsAgent.invoke({ mood: 'happy' });
 
-      expect(typeof result).toBe('string');
-      expect(result).toContain('🎬 Movie Recommendations');
-      // Should not show streaming section if no platforms available
+      // When no movies have streaming platforms, the agent returns NO_RESULTS error
+      expect(typeof result).toBe('object');
+      expect((result as ErrorResponse).errorType).toBe('NO_RESULTS');
     });
 
     it('should format multiple recommendations', async () => {

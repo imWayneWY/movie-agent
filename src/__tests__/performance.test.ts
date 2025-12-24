@@ -50,6 +50,37 @@ class FastMockTmdbClient extends TmdbApiClient {
     });
   }
 
+  async getMovieDetailsWithProviders(
+    movieId: number
+  ): Promise<MovieDetails & { 'watch/providers': WatchProvidersResponse }> {
+    // Simulate fast API response - combines movie details with watch providers
+    return Promise.resolve({
+      id: movieId,
+      title: `Movie ${movieId}`,
+      overview: `A thrilling adventure movie with action-packed sequences and stunning visual effects that will keep you on the edge of your seat from start to finish.`,
+      release_date: '2023-01-15',
+      genres: [
+        { id: 28, name: 'Action' },
+        { id: 12, name: 'Adventure' },
+      ],
+      runtime: 120,
+      vote_average: 8.0,
+      popularity: 150,
+      'watch/providers': {
+        id: movieId,
+        results: {
+          CA: {
+            link: 'https://www.themoviedb.org/movie/123/watch?locale=CA',
+            flatrate: [
+              { provider_id: 8, provider_name: 'Netflix' },
+              { provider_id: 9, provider_name: 'Amazon Prime Video' },
+            ],
+          },
+        },
+      },
+    });
+  }
+
   async getWatchProviders(movieId: number): Promise<WatchProvidersResponse> {
     // Simulate fast API response
     return Promise.resolve({

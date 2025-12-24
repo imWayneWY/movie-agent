@@ -36,6 +36,13 @@ export interface MovieDetails extends MovieSummary {
   homepage?: string;
 }
 
+/**
+ * Movie details with embedded watch providers (from append_to_response)
+ */
+export interface MovieDetailsWithProviders extends MovieDetails {
+  'watch/providers'?: WatchProvidersResponse;
+}
+
 export interface SearchMoviesResponse extends DiscoverMoviesResponse {}
 
 export interface Genre {
@@ -138,6 +145,22 @@ export class TmdbApiClient {
   async getMovieDetails(movieId: number): Promise<MovieDetails> {
     const url = this.buildUrl(`movie/${movieId}`, { region: this.region });
     return this.doFetch<MovieDetails>(url);
+  }
+
+  /**
+   * Fetches movie details with watch providers in a single API call
+   * Uses append_to_response to reduce API calls
+   * @param movieId - TMDb movie ID
+   * @returns Movie details with embedded watch providers
+   */
+  async getMovieDetailsWithProviders(
+    movieId: number
+  ): Promise<MovieDetailsWithProviders> {
+    const url = this.buildUrl(`movie/${movieId}`, {
+      region: this.region,
+      append_to_response: 'watch/providers',
+    });
+    return this.doFetch<MovieDetailsWithProviders>(url);
   }
 
   async searchMovies(

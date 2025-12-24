@@ -1,7 +1,104 @@
 // src/__tests__/providers.test.ts
-import { getCanadianProviders } from '../providers';
+import {
+  getCanadianProviders,
+  extractPlatformsFromProviders,
+} from '../providers';
 import TmdbApiClient from '../tmdbApi';
 import { resetCache } from '../cache';
+
+describe('extractPlatformsFromProviders', () => {
+  it('returns empty array if providersData is undefined', () => {
+    const result = extractPlatformsFromProviders(undefined, 'CA');
+    expect(result).toEqual([]);
+  });
+
+  it('returns empty array if results is empty', () => {
+    const result = extractPlatformsFromProviders(
+      { id: 123, results: {} },
+      'CA'
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('returns empty array if region not found', () => {
+    const result = extractPlatformsFromProviders(
+      {
+        id: 123,
+        results: {
+          US: { flatrate: [{ provider_id: 1, provider_name: 'Netflix' }] },
+        },
+      },
+      'CA'
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('returns empty array if no flatrate providers', () => {
+    const result = extractPlatformsFromProviders(
+      {
+        id: 123,
+        results: { CA: { rent: [], buy: [] } },
+      },
+      'CA'
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('returns mapped platforms for flatrate providers', () => {
+    const result = extractPlatformsFromProviders(
+      {
+        id: 123,
+        results: {
+          CA: {
+            flatrate: [
+              { provider_id: 1, provider_name: 'Netflix' },
+              { provider_id: 2, provider_name: 'Amazon Prime Video' },
+              { provider_id: 3, provider_name: 'Disney Plus' },
+            ],
+          },
+        },
+      },
+      'CA'
+    );
+    expect(result).toEqual(['Netflix', 'Prime Video', 'Disney+']);
+  });
+
+  it('filters out unknown providers', () => {
+    const result = extractPlatformsFromProviders(
+      {
+        id: 123,
+        results: {
+          CA: {
+            flatrate: [
+              { provider_id: 1, provider_name: 'Netflix' },
+              { provider_id: 99, provider_name: 'Unknown Service' },
+            ],
+          },
+        },
+      },
+      'CA'
+    );
+    expect(result).toEqual(['Netflix']);
+  });
+
+  it('removes duplicate platforms', () => {
+    const result = extractPlatformsFromProviders(
+      {
+        id: 123,
+        results: {
+          CA: {
+            flatrate: [
+              { provider_id: 1, provider_name: 'Netflix' },
+              { provider_id: 1, provider_name: 'Netflix' },
+            ],
+          },
+        },
+      },
+      'CA'
+    );
+    expect(result).toEqual(['Netflix']);
+  });
+});
 
 describe('getCanadianProviders', () => {
   const movieId = 12345;

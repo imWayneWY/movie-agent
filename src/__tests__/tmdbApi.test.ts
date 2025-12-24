@@ -84,6 +84,29 @@ describe('TmdbApiClient', () => {
     expect(url).toContain(`api_key=${API_KEY}`);
   });
 
+  test('getMovieDetailsWithProviders succeeds', async () => {
+    const sample = {
+      id: 2,
+      title: 'B',
+      runtime: 120,
+      'watch/providers': {
+        id: 2,
+        results: {
+          CA: {
+            flatrate: [{ provider_id: 8, provider_name: 'Netflix' }],
+          },
+        },
+      },
+    };
+    mockFetchOk(sample);
+    const res = await client.getMovieDetailsWithProviders(2);
+    expect(res).toEqual(sample);
+    const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(url).toContain('movie/2');
+    expect(url).toContain(`api_key=${API_KEY}`);
+    expect(url).toContain('append_to_response=watch%2Fproviders');
+  });
+
   test('searchMovies succeeds', async () => {
     const sample = {
       page: 1,
