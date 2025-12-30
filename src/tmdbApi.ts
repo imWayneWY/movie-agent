@@ -1,4 +1,11 @@
 import config from './config';
+import {
+  createRateLimiter,
+  withRetry,
+  RateLimiter,
+  RateLimiterConfig,
+  DEFAULT_RATE_LIMITER_CONFIG,
+} from './rateLimiter';
 
 export interface MovieSummary {
   id: number;
@@ -66,15 +73,38 @@ export interface WatchProvidersResponse {
   };
 }
 
+/**
+ * Configuration options for TmdbApiClient
+ */
+export interface TmdbApiClientConfig {
+  baseUrl?: string;
+  apiKey?: string;
+  region?: string;
+  /** Rate limiter configuration for throttling requests */
+  rateLimiterConfig?: Partial<RateLimiterConfig>;
+}
+
 export class TmdbApiClient {
   private readonly baseUrl: string;
   private readonly apiKey: string;
   private readonly region: string;
+  private readonly rateLimiter: RateLimiter;
+  private readonly rateLimiterConfig: RateLimiterConfig;
 
-  constructor(baseUrl?: string, apiKey?: string, region?: string) {
+  constructor(
+    baseUrl?: string,
+    apiKey?: string,
+    region?: string,
+    rateLimiterConfig?: Partial<RateLimiterConfig>
+  ) {
     this.baseUrl = baseUrl ?? config.TMDB_BASE_URL;
     this.apiKey = apiKey ?? config.TMDB_API_KEY;
     this.region = region ?? config.TMDB_REGION;
+    this.rateLimiterConfig = {
+      ...DEFAULT_RATE_LIMITER_CONFIG,
+      ...rateLimiterConfig,
+    };
+    this.rateLimiter = createRateLimiter(this.rateLimiterConfig.concurrency);
   }
 
   private buildUrl(
@@ -96,35 +126,44 @@ export class TmdbApiClient {
     return url.toString();
   }
 
+  /**
+   * Internal fetch method with rate limiting and exponential backoff retry
+   * @param url - The URL to fetch
+   * @returns Promise resolving to the parsed JSON response
+   */
   private async doFetch<T>(url: string): Promise<T> {
-    let resp: Response;
-    try {
-      resp = await fetch(url, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-      });
-    } catch (err: any) {
-      throw new Error(
-        `Network error calling TMDb API: ${err?.message ?? String(err)}`
-      );
-    }
+    return this.rateLimiter(() =>
+      withRetry(async () => {
+        let resp: Response;
+        try {
+          resp = await fetch(url, {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          });
+        } catch (err: any) {
+          throw new Error(
+            `Network error calling TMDb API: ${err?.message ?? String(err)}`
+          );
+        }
 
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => '');
-      throw new Error(
-        `TMDb API error ${resp.status}: ${text || resp.statusText}`
-      );
-    }
+        if (!resp.ok) {
+          const text = await resp.text().catch(() => '');
+          throw new Error(
+            `TMDb API error ${resp.status}: ${text || resp.statusText}`
+          );
+        }
 
-    try {
-      return (await resp.json()) as T;
-    } catch (err: any) {
-      throw new Error(
-        `Invalid JSON from TMDb API: ${err?.message ?? String(err)}`
-      );
-    }
+        try {
+          return (await resp.json()) as T;
+        } catch (err: any) {
+          throw new Error(
+            `Invalid JSON from TMDb API: ${err?.message ?? String(err)}`
+          );
+        }
+      }, this.rateLimiterConfig)
+    );
   }
 
   async discoverMovies(
