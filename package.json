@@ -55,6 +55,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.11",
     "@types/node": "^20.10.6",
+    "@types/p-limit": "^2.1.0",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "dotenv-cli": "^7.1.0",
@@ -70,6 +71,7 @@
     "@langchain/core": "^1.1.7",
     "@langchain/google-genai": "^2.1.2",
     "@langchain/openai": "^1.2.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "p-limit": "^3.1.0"
   }
 }
