@@ -115,8 +115,7 @@ export class TmdbApiClient {
       ? this.baseUrl
       : this.baseUrl + '/';
     const url = new URL(path, normalizedBase);
-    // TMDb v3 supports API key via query string
-    url.searchParams.set('api_key', this.apiKey);
+    // TMDb v3 API key is now passed via Authorization header for security
     if (params) {
       for (const [k, v] of Object.entries(params)) {
         if (v !== undefined && v !== null) {
@@ -138,7 +137,10 @@ export class TmdbApiClient {
         let resp: Response;
         try {
           resp = await fetch(url, {
-            headers: { Accept: 'application/json' },
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${this.apiKey}`,
+            },
           });
         } catch (err: any) {
           throw new Error(
