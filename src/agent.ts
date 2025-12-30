@@ -38,6 +38,7 @@ export class MovieAgent {
   private tmdbClient: TmdbApiClient;
   private logger: (message: string) => void;
   private llmService: LLMService | null;
+  private debug: boolean;
 
   /**
    * Creates a new MovieAgent instance
@@ -47,6 +48,7 @@ export class MovieAgent {
    * @param llmProvider - LLM provider to use ('gemini' or 'azure')
    * @param llmApiKey - API key for the LLM provider
    * @param azureConfig - Azure OpenAI configuration (endpoint and deployment)
+   * @param debug - Whether to include detailed error information in responses (default: false for production safety)
    */
   constructor(
     tmdbClient?: TmdbApiClient,
@@ -54,7 +56,8 @@ export class MovieAgent {
     enableLLM?: boolean,
     llmProvider?: 'gemini' | 'azure',
     llmApiKey?: string,
-    azureConfig?: { endpoint?: string; deployment?: string }
+    azureConfig?: { endpoint?: string; deployment?: string },
+    debug?: boolean
   ) {
     this.tmdbClient = tmdbClient ?? new TmdbApiClient();
     this.logger =
@@ -65,6 +68,9 @@ export class MovieAgent {
     this.llmService = shouldEnableLLM
       ? new LLMService(llmApiKey, llmProvider, azureConfig)
       : null;
+
+    // Default to false for production safety - only expose details when explicitly enabled
+    this.debug = debug ?? false;
   }
 
   /**
@@ -152,12 +158,18 @@ export class MovieAgent {
     message: string,
     details?: string
   ): ErrorResponse {
+    // Log detailed error information server-side for debugging
+    if (details) {
+      this.logger(`Error details: ${details}`);
+    }
+
     return {
       error: true,
       errorType,
       message,
       timestamp: new Date().toISOString(),
-      details,
+      // Only include details in response when debug mode is enabled
+      details: this.debug ? details : undefined,
     };
   }
 
