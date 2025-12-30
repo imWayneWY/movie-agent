@@ -67,11 +67,13 @@ describe('TmdbApiClient', () => {
     expect(res).toEqual(sample);
     expect(global.fetch).toHaveBeenCalled();
     const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    const options = (global.fetch as jest.Mock).mock.calls[0][1];
     expect(url).toContain('discover/movie');
-    expect(url).toContain(`api_key=${API_KEY}`);
+    expect(url).not.toContain('api_key');
     expect(url).toContain('sort_by=popularity.desc');
     expect(url).toContain('page=1');
     expect(url).toContain(`region=${REGION}`);
+    expect(options.headers.Authorization).toBe(`Bearer ${API_KEY}`);
   });
 
   test('getMovieDetails succeeds', async () => {
@@ -80,8 +82,10 @@ describe('TmdbApiClient', () => {
     const res = await client.getMovieDetails(2);
     expect(res).toEqual(sample);
     const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    const options = (global.fetch as jest.Mock).mock.calls[0][1];
     expect(url).toContain('movie/2');
-    expect(url).toContain(`api_key=${API_KEY}`);
+    expect(url).not.toContain('api_key');
+    expect(options.headers.Authorization).toBe(`Bearer ${API_KEY}`);
   });
 
   test('getMovieDetailsWithProviders succeeds', async () => {
@@ -102,9 +106,11 @@ describe('TmdbApiClient', () => {
     const res = await client.getMovieDetailsWithProviders(2);
     expect(res).toEqual(sample);
     const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    const options = (global.fetch as jest.Mock).mock.calls[0][1];
     expect(url).toContain('movie/2');
-    expect(url).toContain(`api_key=${API_KEY}`);
+    expect(url).not.toContain('api_key');
     expect(url).toContain('append_to_response=watch%2Fproviders');
+    expect(options.headers.Authorization).toBe(`Bearer ${API_KEY}`);
   });
 
   test('searchMovies succeeds', async () => {
@@ -168,5 +174,22 @@ describe('TmdbApiClient', () => {
       text: jest.fn().mockResolvedValue(''),
     } as any);
     await expect(client.searchMovies('x')).rejects.toThrow(/Invalid JSON/);
+  });
+
+  test('uses Authorization header instead of query parameter for security', async () => {
+    const sample = { genres: [{ id: 10, name: 'Action' }] };
+    mockFetchOk(sample);
+    await client.getGenres();
+
+    const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    const options = (global.fetch as jest.Mock).mock.calls[0][1];
+
+    // Verify API key is NOT in URL (security issue)
+    expect(url).not.toContain('api_key');
+    expect(url).not.toContain(API_KEY);
+
+    // Verify API key IS in Authorization header (secure method)
+    expect(options.headers.Authorization).toBe(`Bearer ${API_KEY}`);
+    expect(options.headers.Accept).toBe('application/json');
   });
 });
