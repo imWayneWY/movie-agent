@@ -2,26 +2,23 @@
 
 /**
  * Common prompt injection patterns to detect and mitigate
+ * Using consolidated patterns for better performance and maintainability
  */
 const PROMPT_INJECTION_PATTERNS = [
-  /ignore\s+(?:all\s+)?(?:previous|the)\s+(?:instructions?|prompts?|commands?)/gi,
-  /ignore\s+(?:previous|all|the)\s+(?:instructions?|prompts?|commands?)/gi,
-  /disregard\s+(?:all\s+)?(?:previous|the)\s+(?:instructions?|prompts?|commands?)/gi,
-  /disregard\s+(?:previous|all|the)\s+(?:instructions?|prompts?|commands?)/gi,
-  /forget\s+(?:all\s+)?(?:previous|the)\s+(?:instructions?|prompts?|commands?)/gi,
-  /forget\s+(?:previous|all|the)\s+(?:instructions?|prompts?|commands?)/gi,
-  /override\s+(?:all\s+)?(?:previous|the)\s+(?:instructions?|prompts?|commands?)/gi,
-  /override\s+(?:previous|all|the)\s+(?:instructions?|prompts?|commands?)/gi,
+  // Action-based injections: "ignore/disregard/forget/override [all] [previous/the] instructions/prompts/commands"
+  /(?:ignore|disregard|forget|override)\s+(?:all\s+)?(?:previous|the)\s+(?:instructions?|prompts?|commands?)/gi,
+  /(?:ignore|disregard|forget|override)\s+(?:previous|all|the)\s+(?:instructions?|prompts?|commands?)/gi,
+  // New instruction attempts
   /new\s+(?:instructions?|prompts?|commands?)[\s:]/gi,
-  /system\s*:/gi,
-  /assistant\s*:/gi,
-  /user\s*:/gi,
-  /\[INST\]/gi,
-  /\[\/INST\]/gi,
-  /<\|im_start\|>/gi,
-  /<\|im_end\|>/gi,
-  /```[\s\S]*?```/g, // Code blocks that might contain injection
-  /\{[\s\S]*?"role"\s*:\s*"(system|assistant)"[\s\S]*?\}/gi, // JSON with role system
+  // Role-based injections
+  /(?:system|assistant|user)\s*:/gi,
+  // Model-specific control tokens
+  /\[INST\]|\[\/INST\]/gi,
+  /<\|im_start\|>|<\|im_end\|>/gi,
+  // Code blocks (limited to reasonable size to prevent ReDoS)
+  /```[^`]{0,1000}```/g,
+  // Role injection in JSON format
+  /\{[^}]{0,500}"role"\s*:\s*"(?:system|assistant)"[^}]{0,500}\}/gi,
 ];
 
 /**
@@ -82,7 +79,7 @@ export function sanitizeString(str: string): string {
 
   let sanitized = str;
 
-  // Truncate to maximum length
+  // Truncate to maximum length early to prevent expensive operations on large strings
   if (sanitized.length > MAX_SANITIZED_LENGTH) {
     sanitized = sanitized.substring(0, MAX_SANITIZED_LENGTH);
   }
@@ -91,14 +88,19 @@ export function sanitizeString(str: string): string {
   // Use a marker that won't be affected by later cleanup
   const FILTERED_MARKER = '___FILTERED___';
   for (const pattern of PROMPT_INJECTION_PATTERNS) {
+    // Reset regex state to ensure consistent behavior with global flag
+    pattern.lastIndex = 0;
     sanitized = sanitized.replace(pattern, FILTERED_MARKER);
   }
 
   // Remove control characters except common whitespace (space, tab, newline)
   sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
-  // Limit consecutive special characters (more than 3 in a row)
-  sanitized = sanitized.replace(/([^\w\s])\1{3,}/g, '$1$1$1');
+  // Limit consecutive special characters (more than 3 in a row) - more efficient than nested quantifiers
+  // Only process if the string contains special characters
+  if (/[^\w\s]/.test(sanitized)) {
+    sanitized = sanitized.replace(/([^\w\s])\1{3,}/g, '$1$1$1');
+  }
 
   // Remove any remaining potential instruction delimiters (but preserve our marker)
   sanitized = sanitized.replace(/[<>{}[\]]/g, ' ');
@@ -131,37 +133,23 @@ export function detectPromptInjection(input: any): boolean {
     ? input 
     : JSON.stringify(input);
 
-  // More flexible patterns for detection (not for replacement)
-  const DETECTION_PATTERNS = [
-    /ignore\s+.*(instructions?|prompts?|commands?)/gi,
-    /disregard\s+.*(instructions?|prompts?|commands?)/gi,
-    /forget\s+.*(instructions?|prompts?|commands?)/gi,
-    /override\s+.*(instructions?|prompts?|commands?)/gi,
-    /new\s+(instructions?|prompts?|commands?)/gi,
-    /system\s*:/gi,
-    /assistant\s*:/gi,
-    /user\s*:/gi,
-    /\[INST\]/gi,
-    /\[\/INST\]/gi,
-    /<\|im_start\|>/gi,
-    /<\|im_end\|>/gi,
-    /```/g,
-  ];
+  // Early termination for very large inputs to prevent performance issues
+  const CHECK_LENGTH_LIMIT = 10000;
+  const truncatedInput = inputStr.length > CHECK_LENGTH_LIMIT 
+    ? inputStr.substring(0, CHECK_LENGTH_LIMIT) 
+    : inputStr;
 
-  // Check against known patterns
-  for (const pattern of DETECTION_PATTERNS) {
-    if (pattern.test(inputStr)) {
+  // Reuse sanitization patterns for consistency
+  for (const pattern of PROMPT_INJECTION_PATTERNS) {
+    // Reset regex state for reuse
+    pattern.lastIndex = 0;
+    if (pattern.test(truncatedInput)) {
       return true;
     }
   }
 
-  // Check for suspicious character sequences
-  if (/[<>{}[\]]{3,}/.test(inputStr)) {
-    return true;
-  }
-
-  // Check for role-based injection patterns
-  if (/"role"\s*:\s*"(system|assistant)"/i.test(inputStr)) {
+  // Additional checks for suspicious character sequences
+  if (/[<>{}[\]]{3,}/.test(truncatedInput)) {
     return true;
   }
 

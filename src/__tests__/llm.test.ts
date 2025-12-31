@@ -1,7 +1,6 @@
 // src/__tests__/llm.test.ts
 import { LLMService, getLLMService } from '../llm';
 import { AgentResponse } from '../types';
-import * as sanitizeModule from '../sanitize';
 
 // Mock the config module to read from process.env at runtime
 jest.mock('../config', () => ({
