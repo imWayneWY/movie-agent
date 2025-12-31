@@ -547,17 +547,28 @@ describe('Cache', () => {
         expect(session2Token).toBeUndefined();
       });
 
-      it('should sanitize context values containing colons', () => {
-        // Context values with colons should be sanitized to prevent key collisions
+      it('should sanitize context values to prevent key collisions', () => {
+        // Two different user IDs that could collide without proper sanitization
         const cache1 = new Cache(3600, { userId: 'user:123:abc' });
         const cache2 = new Cache(3600, { userId: 'user_123:abc' });
 
+        // Set values in both caches
         cache1.set('data', 'value1');
         cache2.set('data', 'value2');
 
-        // Both should be accessible independently after sanitization
+        // Each cache instance has its own store, so they're naturally isolated
         expect(cache1.get('data')).toBe('value1');
         expect(cache2.get('data')).toBe('value2');
+
+        // The real test: Using generateDiscoverCacheKey with these contexts
+        // should produce different keys
+        const key1 = generateDiscoverCacheKey({ test: 'param' }, { userId: 'user:123:abc' });
+        const key2 = generateDiscoverCacheKey({ test: 'param' }, { userId: 'user_123:abc' });
+        
+        // Keys should be different due to URI encoding
+        expect(key1).not.toBe(key2);
+        expect(key1).toContain('user%3A123%3Aabc'); // Encoded version of 'user:123:abc'
+        expect(key2).toContain('user_123%3Aabc'); // Encoded version of 'user_123:abc'
       });
 
       it('should handle context values with special characters', () => {

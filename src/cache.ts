@@ -22,13 +22,15 @@ export interface CacheContext {
 
 /**
  * Sanitizes a context value to prevent cache key collisions.
- * Replaces colons with underscores to avoid conflicts with the delimiter.
+ * Encodes special characters to ensure unique, safe cache keys.
+ * Uses encodeURIComponent to handle all special characters consistently.
  * @param value Context value to sanitize
- * @returns Sanitized value
+ * @returns Sanitized value safe for use in cache keys
  */
 function sanitizeContextValue(value: string): string {
-  // Replace colons and other special characters that could cause key collisions
-  return value.replace(/[:]/g, '_');
+  // Use URI encoding to handle all special characters safely
+  // This ensures no collisions can occur from special character combinations
+  return encodeURIComponent(value);
 }
 
 /**
