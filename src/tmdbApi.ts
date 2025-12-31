@@ -100,6 +100,14 @@ export class TmdbApiClient {
     this.baseUrl = baseUrl ?? config.TMDB_BASE_URL;
     this.apiKey = apiKey ?? config.TMDB_API_KEY;
     this.region = region ?? config.TMDB_REGION;
+
+    // Enforce HTTPS-only for security
+    if (!this.baseUrl.startsWith('https://')) {
+      throw new Error(
+        'Base URL must use HTTPS protocol for secure API communication'
+      );
+    }
+
     this.rateLimiterConfig = {
       ...DEFAULT_RATE_LIMITER_CONFIG,
       ...rateLimiterConfig,
