@@ -1,0 +1,11 @@
+# Run formatting check
+npm run format:check
+
+# Run type checking
+npm run type-check
+
+# Run linting
+npm run lint
+
+# Run unit tests (excluding live integration tests for speed)
+npm run test:unit
