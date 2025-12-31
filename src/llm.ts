@@ -5,6 +5,7 @@ import { PromptTemplate } from '@langchain/core/prompts';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { AgentResponse } from './types';
 import config from './config';
+import { sanitizeForLLMPrompt, detectPromptInjection } from './sanitize';
 
 /**
  * LLM service for generating formatted movie recommendation output
@@ -119,8 +120,17 @@ ${index + 1}. ${movie.title} (${movie.releaseYear})
       })
       .join('\n');
 
-    // Format user input
-    const userInputText = JSON.stringify(userInput, null, 2);
+    // Sanitize and format user input to prevent prompt injection
+    const sanitizedInput = sanitizeForLLMPrompt(userInput);
+
+    // Log potential injection attempts for security monitoring
+    if (detectPromptInjection(userInput)) {
+      console.warn(
+        '⚠️ Potential prompt injection detected in user input. Input has been sanitized.'
+      );
+    }
+
+    const userInputText = JSON.stringify(sanitizedInput, null, 2);
 
     // Generate formatted output using LLM with timeout
     try {
@@ -179,8 +189,17 @@ ${index + 1}. ${movie.title} (${movie.releaseYear})
       })
       .join('\n');
 
-    // Format user input
-    const userInputText = JSON.stringify(userInput, null, 2);
+    // Sanitize and format user input to prevent prompt injection
+    const sanitizedInput = sanitizeForLLMPrompt(userInput);
+
+    // Log potential injection attempts for security monitoring
+    if (detectPromptInjection(userInput)) {
+      console.warn(
+        '⚠️ Potential prompt injection detected in user input. Input has been sanitized.'
+      );
+    }
+
+    const userInputText = JSON.stringify(sanitizedInput, null, 2);
 
     try {
       const timeoutMs = 15000; // 15 second timeout
