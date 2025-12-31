@@ -94,6 +94,7 @@ export function sanitizeString(str: string): string {
   }
 
   // Remove control characters except common whitespace (space, tab, newline)
+  // eslint-disable-next-line no-control-regex
   sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
   // Limit consecutive special characters (more than 3 in a row) - more efficient than nested quantifiers
