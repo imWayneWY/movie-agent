@@ -71,7 +71,7 @@ export function validateMood(mood: string): void {
   if (typeof mood !== 'string') {
     throw new Error('Mood must be a string');
   }
-  if (mood.length === 0) {
+  if (mood.trim().length === 0) {
     throw new Error('Mood cannot be empty');
   }
   if (mood.length > MAX_MOOD_LENGTH) {
@@ -94,7 +94,7 @@ export function validateGenre(genre: string | string[]): void {
     if (typeof g !== 'string') {
       throw new Error('Genre must be a string');
     }
-    if (g.length === 0) {
+    if (g.trim().length === 0) {
       throw new Error('Genre cannot be empty');
     }
     if (g.length > MAX_GENRE_LENGTH) {

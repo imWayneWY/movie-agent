@@ -94,6 +94,7 @@ describe('validateMood', () => {
 
   it('throws for empty mood', () => {
     expect(() => validateMood('')).toThrow(/Mood cannot be empty/);
+    expect(() => validateMood('   ')).toThrow(/Mood cannot be empty/);
   });
 
   it('throws for mood exceeding max length', () => {
@@ -125,10 +126,14 @@ describe('validateGenre', () => {
 
   it('throws for empty genre string', () => {
     expect(() => validateGenre('')).toThrow(/Genre cannot be empty/);
+    expect(() => validateGenre('   ')).toThrow(/Genre cannot be empty/);
   });
 
   it('throws for empty genre in array', () => {
     expect(() => validateGenre(['Action', ''])).toThrow(
+      /Genre cannot be empty/
+    );
+    expect(() => validateGenre(['Action', '   '])).toThrow(
       /Genre cannot be empty/
     );
   });
