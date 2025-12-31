@@ -82,7 +82,14 @@ export interface TmdbApiClientConfig {
   region?: string;
   /** Rate limiter configuration for throttling requests */
   rateLimiterConfig?: Partial<RateLimiterConfig>;
+  /** Request timeout in milliseconds (default: 10000) */
+  timeoutMs?: number;
 }
+
+/**
+ * Default timeout for API requests in milliseconds (10 seconds)
+ */
+const DEFAULT_TIMEOUT_MS = 10000;
 
 export class TmdbApiClient {
   private readonly baseUrl: string;
@@ -90,16 +97,19 @@ export class TmdbApiClient {
   private readonly region: string;
   private readonly rateLimiter: RateLimiter;
   private readonly rateLimiterConfig: RateLimiterConfig;
+  private readonly timeoutMs: number;
 
   constructor(
     baseUrl?: string,
     apiKey?: string,
     region?: string,
-    rateLimiterConfig?: Partial<RateLimiterConfig>
+    rateLimiterConfig?: Partial<RateLimiterConfig>,
+    timeoutMs?: number
   ) {
     this.baseUrl = baseUrl ?? config.TMDB_BASE_URL;
     this.apiKey = apiKey ?? config.TMDB_API_KEY;
     this.region = region ?? config.TMDB_REGION;
+    this.timeoutMs = timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
     // Enforce HTTPS-only for security
     if (!this.baseUrl.toLowerCase().startsWith('https://')) {
@@ -143,14 +153,28 @@ export class TmdbApiClient {
     return this.rateLimiter(() =>
       withRetry(async () => {
         let resp: Response;
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => {
+          abortController.abort();
+        }, this.timeoutMs);
+
         try {
           resp = await fetch(url, {
             headers: {
               Accept: 'application/json',
               Authorization: `Bearer ${this.apiKey}`,
             },
+            signal: abortController.signal,
           });
+          clearTimeout(timeoutId);
         } catch (err: any) {
+          clearTimeout(timeoutId);
+          // Check if the error is due to abort (timeout)
+          if (err.name === 'AbortError') {
+            throw new Error(
+              `Network error calling TMDb API: Request timeout after ${this.timeoutMs}ms`
+            );
+          }
           throw new Error(
             `Network error calling TMDb API: ${err?.message ?? String(err)}`
           );
