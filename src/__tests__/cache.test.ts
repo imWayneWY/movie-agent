@@ -584,6 +584,13 @@ describe('Cache', () => {
         expect(cache.has('test-key')).toBe(true);
         expect(cache.delete('test-key')).toBe(true);
       });
+
+      it('should reject empty context values', () => {
+        // Empty strings should be rejected to prevent ambiguous cache keys
+        expect(() => new Cache(3600, { userId: '' })).toThrow('Context values cannot be empty strings');
+        expect(() => new Cache(3600, { tenantId: '   ' })).toThrow('Context values cannot be empty strings');
+        expect(() => new Cache(3600, { sessionId: '' })).toThrow('Context values cannot be empty strings');
+      });
     });
   });
 });

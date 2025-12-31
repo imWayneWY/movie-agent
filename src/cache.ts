@@ -23,13 +23,17 @@ export interface CacheContext {
 /**
  * Sanitizes a context value to prevent cache key collisions.
  * Encodes special characters to ensure unique, safe cache keys.
- * Uses encodeURIComponent to handle all special characters consistently.
+ * Uses encodeURIComponent to handle special characters like colons, slashes, etc.
  * @param value Context value to sanitize
  * @returns Sanitized value safe for use in cache keys
+ * @throws Error if value is empty
  */
 function sanitizeContextValue(value: string): string {
-  // Use URI encoding to handle all special characters safely
-  // This ensures no collisions can occur from special character combinations
+  if (!value || value.trim() === '') {
+    throw new Error('Context values cannot be empty strings');
+  }
+  // Use URI encoding to handle special characters safely
+  // This prevents collisions from characters like ':', '/', ';', etc.
   return encodeURIComponent(value);
 }
 
@@ -68,10 +72,25 @@ export class Cache {
    * Creates a new cache instance
    * @param defaultTtl Default time-to-live in seconds
    * @param context Optional context for cache key isolation (e.g., userId, sessionId, tenantId)
+   * @throws Error if any context value is an empty string
    */
   constructor(defaultTtl: number = 3600, context?: CacheContext) {
     this.store = new Map();
     this.defaultTtl = defaultTtl;
+    
+    // Validate context values if provided
+    if (context) {
+      if (context.tenantId !== undefined && (!context.tenantId || context.tenantId.trim() === '')) {
+        throw new Error('Context values cannot be empty strings');
+      }
+      if (context.userId !== undefined && (!context.userId || context.userId.trim() === '')) {
+        throw new Error('Context values cannot be empty strings');
+      }
+      if (context.sessionId !== undefined && (!context.sessionId || context.sessionId.trim() === '')) {
+        throw new Error('Context values cannot be empty strings');
+      }
+    }
+    
     this.context = context;
   }
 
