@@ -245,79 +245,71 @@ describe('TmdbApiClient', () => {
   });
 
   describe('Request Timeout', () => {
-    test(
-      'should timeout after configured duration',
-      async () => {
-        // Mock fetch to hang but respect abort signal
-        global.fetch = jest.fn().mockImplementation((url, options) => {
-          return new Promise((resolve, reject) => {
-            // Listen for abort signal
-            if (options?.signal) {
-              options.signal.addEventListener('abort', () => {
-                const error = new Error('The operation was aborted');
-                error.name = 'AbortError';
-                reject(error);
-              });
-            }
-            // Never resolve to simulate hanging request (unless aborted)
-          });
+    test('should timeout after configured duration', async () => {
+      // Mock fetch to hang but respect abort signal
+      global.fetch = jest.fn().mockImplementation((url, options) => {
+        return new Promise((resolve, reject) => {
+          // Listen for abort signal
+          if (options?.signal) {
+            options.signal.addEventListener('abort', () => {
+              const error = new Error('The operation was aborted');
+              error.name = 'AbortError';
+              reject(error);
+            });
+          }
+          // Never resolve to simulate hanging request (unless aborted)
         });
+      });
 
-        // Create client with 100ms timeout
-        const timeoutClient = new TmdbApiClient(
-          BASE_URL,
-          API_KEY,
-          REGION,
-          undefined,
-          100
-        );
+      // Create client with 100ms timeout
+      const timeoutClient = new TmdbApiClient(
+        BASE_URL,
+        API_KEY,
+        REGION,
+        undefined,
+        100
+      );
 
-        await expect(timeoutClient.getGenres()).rejects.toThrow(
-          /Request timeout after 100ms/
-        );
-      },
-      15000
-    ); // 15 second Jest timeout
+      await expect(timeoutClient.getGenres()).rejects.toThrow(
+        /Request timeout after 100ms/
+      );
+    }, 15000); // 15 second Jest timeout
 
-    test(
-      'should use default timeout when not specified',
-      async () => {
-        // Mock fetch to hang but respect abort signal
-        global.fetch = jest.fn().mockImplementation((url, options) => {
-          return new Promise((resolve, reject) => {
-            // Listen for abort signal
-            if (options?.signal) {
-              options.signal.addEventListener('abort', () => {
-                const error = new Error('The operation was aborted');
-                error.name = 'AbortError';
-                reject(error);
-              });
-            }
-            // Never resolve to simulate hanging request (unless aborted)
-          });
+    test('should use default timeout when not specified', async () => {
+      // Mock fetch to hang but respect abort signal
+      global.fetch = jest.fn().mockImplementation((url, options) => {
+        return new Promise((resolve, reject) => {
+          // Listen for abort signal
+          if (options?.signal) {
+            options.signal.addEventListener('abort', () => {
+              const error = new Error('The operation was aborted');
+              error.name = 'AbortError';
+              reject(error);
+            });
+          }
+          // Never resolve to simulate hanging request (unless aborted)
         });
+      });
 
-        // Use a shorter timeout for testing
-        const shortTimeoutClient = new TmdbApiClient(
-          BASE_URL,
-          API_KEY,
-          REGION,
-          undefined,
-          50
-        );
+      // Use a shorter timeout for testing
+      const shortTimeoutClient = new TmdbApiClient(
+        BASE_URL,
+        API_KEY,
+        REGION,
+        undefined,
+        50
+      );
 
-        const startTime = Date.now();
-        await expect(shortTimeoutClient.getGenres()).rejects.toThrow(
-          /Network error calling TMDb API/
-        );
-        const endTime = Date.now();
-        const elapsed = endTime - startTime;
+      const startTime = Date.now();
+      await expect(shortTimeoutClient.getGenres()).rejects.toThrow(
+        /Network error calling TMDb API/
+      );
+      const endTime = Date.now();
+      const elapsed = endTime - startTime;
 
-        // Should timeout in approximately 50ms (with some buffer for test execution)
-        expect(elapsed).toBeLessThan(200);
-      },
-      15000
-    ); // 15 second Jest timeout
+      // Should timeout in approximately 50ms (with some buffer for test execution)
+      expect(elapsed).toBeLessThan(200);
+    }, 15000); // 15 second Jest timeout
 
     test('should handle AbortError correctly', async () => {
       // Mock fetch to simulate AbortError
