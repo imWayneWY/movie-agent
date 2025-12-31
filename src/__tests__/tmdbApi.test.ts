@@ -192,4 +192,55 @@ describe('TmdbApiClient', () => {
     expect(options.headers.Authorization).toBe(`Bearer ${API_KEY}`);
     expect(options.headers.Accept).toBe('application/json');
   });
+
+  describe('HTTPS Enforcement', () => {
+    test('should accept HTTPS URLs', () => {
+      // Should not throw for HTTPS URLs
+      expect(() => {
+        new TmdbApiClient('https://api.themoviedb.org/3/', API_KEY, REGION);
+      }).not.toThrow();
+    });
+
+    test('should accept HTTPS URLs with uppercase protocol', () => {
+      // Should not throw for HTTPS URLs with any case
+      expect(() => {
+        new TmdbApiClient('HTTPS://api.themoviedb.org/3/', API_KEY, REGION);
+      }).not.toThrow();
+      expect(() => {
+        new TmdbApiClient('Https://api.themoviedb.org/3/', API_KEY, REGION);
+      }).not.toThrow();
+    });
+
+    test('should reject HTTP URLs', () => {
+      expect(() => {
+        new TmdbApiClient('http://api.themoviedb.org/3/', API_KEY, REGION);
+      }).toThrow(
+        'Base URL must use HTTPS protocol for secure API communication'
+      );
+    });
+
+    test('should reject non-HTTPS protocols', () => {
+      expect(() => {
+        new TmdbApiClient('ftp://api.themoviedb.org/3/', API_KEY, REGION);
+      }).toThrow(
+        'Base URL must use HTTPS protocol for secure API communication'
+      );
+    });
+
+    test('should reject URLs without protocol', () => {
+      expect(() => {
+        new TmdbApiClient('api.themoviedb.org/3/', API_KEY, REGION);
+      }).toThrow(
+        'Base URL must use HTTPS protocol for secure API communication'
+      );
+    });
+
+    test('should use HTTPS when baseUrl comes from config', () => {
+      // The default BASE_URL in beforeEach is already HTTPS
+      // This verifies the config-based URL is also validated
+      expect(() => {
+        new TmdbApiClient();
+      }).not.toThrow();
+    });
+  });
 });
