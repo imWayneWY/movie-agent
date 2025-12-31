@@ -11,6 +11,7 @@ An intelligent movie recommendation system that helps users discover movies base
 - ⚡ Fast responses using TMDb API
 - 🎯 Smart filtering by runtime, release year, and streaming platforms
 - 📦 Easy integration into web applications and APIs
+- 🔒 Multi-tenant cache isolation for secure deployments (see [Cache Isolation Guide](docs/CACHE_ISOLATION.md))
 
 ## Prerequisites
 
