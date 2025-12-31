@@ -20,6 +20,32 @@ export interface CacheContext {
   tenantId?: string;
 }
 
+/**
+ * Applies context prefix to a cache key for multi-tenant isolation.
+ * Prefixes are applied in order: tenant -> user -> session
+ * @param key Base cache key
+ * @param context Optional context for isolation
+ * @returns Prefixed cache key if context is provided, otherwise the original key
+ */
+function applyContextPrefix(key: string, context?: CacheContext): string {
+  if (!context) {
+    return key;
+  }
+
+  const prefixParts: string[] = [];
+  if (context.tenantId) {
+    prefixParts.push(`tenant:${context.tenantId}`);
+  }
+  if (context.userId) {
+    prefixParts.push(`user:${context.userId}`);
+  }
+  if (context.sessionId) {
+    prefixParts.push(`session:${context.sessionId}`);
+  }
+
+  return prefixParts.length > 0 ? `${prefixParts.join(':')}:${key}` : key;
+}
+
 export class Cache {
   private store: Map<string, CacheEntry<any>>;
   private defaultTtl: number;
@@ -42,22 +68,7 @@ export class Cache {
    * @returns Prefixed cache key with context
    */
   private prefixKey(key: string): string {
-    if (!this.context) {
-      return key;
-    }
-
-    const prefixParts: string[] = [];
-    if (this.context.tenantId) {
-      prefixParts.push(`tenant:${this.context.tenantId}`);
-    }
-    if (this.context.userId) {
-      prefixParts.push(`user:${this.context.userId}`);
-    }
-    if (this.context.sessionId) {
-      prefixParts.push(`session:${this.context.sessionId}`);
-    }
-
-    return prefixParts.length > 0 ? `${prefixParts.join(':')}:${key}` : key;
+    return applyContextPrefix(key, this.context);
   }
 
   /**
@@ -185,23 +196,7 @@ export function generateDiscoverCacheKey(
   const keyParts = sortedKeys.map(key => `${key}=${params[key]}`);
   const baseKey = `discover:${keyParts.join('&')}`;
 
-  // Apply context prefixing if provided
-  if (!context) {
-    return baseKey;
-  }
-
-  const prefixParts: string[] = [];
-  if (context.tenantId) {
-    prefixParts.push(`tenant:${context.tenantId}`);
-  }
-  if (context.userId) {
-    prefixParts.push(`user:${context.userId}`);
-  }
-  if (context.sessionId) {
-    prefixParts.push(`session:${context.sessionId}`);
-  }
-
-  return prefixParts.length > 0 ? `${prefixParts.join(':')}:${baseKey}` : baseKey;
+  return applyContextPrefix(baseKey, context);
 }
 
 /**
@@ -218,21 +213,5 @@ export function generateProvidersCacheKey(
 ): string {
   const baseKey = `providers:${movieId}:${region}`;
 
-  // Apply context prefixing if provided
-  if (!context) {
-    return baseKey;
-  }
-
-  const prefixParts: string[] = [];
-  if (context.tenantId) {
-    prefixParts.push(`tenant:${context.tenantId}`);
-  }
-  if (context.userId) {
-    prefixParts.push(`user:${context.userId}`);
-  }
-  if (context.sessionId) {
-    prefixParts.push(`session:${context.sessionId}`);
-  }
-
-  return prefixParts.length > 0 ? `${prefixParts.join(':')}:${baseKey}` : baseKey;
+  return applyContextPrefix(baseKey, context);
 }
