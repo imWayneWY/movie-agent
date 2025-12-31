@@ -436,7 +436,9 @@ describe('Cache', () => {
         };
         const key = generateDiscoverCacheKey(params, context);
 
-        expect(key).toBe('tenant:tenant1:user:user2:session:session3:discover:mood=excited');
+        expect(key).toBe(
+          'tenant:tenant1:user:user2:session:session3:discover:mood=excited'
+        );
       });
 
       it('should generate different keys for different contexts with same params', () => {
@@ -481,12 +483,18 @@ describe('Cache', () => {
         };
         const key = generateProvidersCacheKey(12345, 'CA', context);
 
-        expect(key).toBe('tenant:tenant1:user:user2:session:session3:providers:12345:CA');
+        expect(key).toBe(
+          'tenant:tenant1:user:user2:session:session3:providers:12345:CA'
+        );
       });
 
       it('should generate different keys for different contexts with same params', () => {
-        const key1 = generateProvidersCacheKey(12345, 'CA', { userId: 'user1' });
-        const key2 = generateProvidersCacheKey(12345, 'CA', { userId: 'user2' });
+        const key1 = generateProvidersCacheKey(12345, 'CA', {
+          userId: 'user1',
+        });
+        const key2 = generateProvidersCacheKey(12345, 'CA', {
+          userId: 'user2',
+        });
 
         expect(key1).not.toBe(key2);
       });
@@ -562,9 +570,15 @@ describe('Cache', () => {
 
         // The real test: Using generateDiscoverCacheKey with these contexts
         // should produce different keys
-        const key1 = generateDiscoverCacheKey({ test: 'param' }, { userId: 'user:123:abc' });
-        const key2 = generateDiscoverCacheKey({ test: 'param' }, { userId: 'user_123:abc' });
-        
+        const key1 = generateDiscoverCacheKey(
+          { test: 'param' },
+          { userId: 'user:123:abc' }
+        );
+        const key2 = generateDiscoverCacheKey(
+          { test: 'param' },
+          { userId: 'user_123:abc' }
+        );
+
         // Keys should be different due to URI encoding
         expect(key1).not.toBe(key2);
         expect(key1).toContain('user%3A123%3Aabc'); // Encoded version of 'user:123:abc'
@@ -587,9 +601,15 @@ describe('Cache', () => {
 
       it('should reject empty context values', () => {
         // Empty strings should be rejected to prevent ambiguous cache keys
-        expect(() => new Cache(3600, { userId: '' })).toThrow('Context values cannot be empty strings');
-        expect(() => new Cache(3600, { tenantId: '   ' })).toThrow('Context values cannot be empty strings');
-        expect(() => new Cache(3600, { sessionId: '' })).toThrow('Context values cannot be empty strings');
+        expect(() => new Cache(3600, { userId: '' })).toThrow(
+          'Context values cannot be empty strings'
+        );
+        expect(() => new Cache(3600, { tenantId: '   ' })).toThrow(
+          'Context values cannot be empty strings'
+        );
+        expect(() => new Cache(3600, { sessionId: '' })).toThrow(
+          'Context values cannot be empty strings'
+        );
       });
     });
   });

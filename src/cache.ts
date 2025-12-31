@@ -77,20 +77,29 @@ export class Cache {
   constructor(defaultTtl: number = 3600, context?: CacheContext) {
     this.store = new Map();
     this.defaultTtl = defaultTtl;
-    
+
     // Validate context values if provided
     if (context) {
-      if (context.tenantId !== undefined && (!context.tenantId || context.tenantId.trim() === '')) {
+      if (
+        context.tenantId !== undefined &&
+        (!context.tenantId || context.tenantId.trim() === '')
+      ) {
         throw new Error('Context values cannot be empty strings');
       }
-      if (context.userId !== undefined && (!context.userId || context.userId.trim() === '')) {
+      if (
+        context.userId !== undefined &&
+        (!context.userId || context.userId.trim() === '')
+      ) {
         throw new Error('Context values cannot be empty strings');
       }
-      if (context.sessionId !== undefined && (!context.sessionId || context.sessionId.trim() === '')) {
+      if (
+        context.sessionId !== undefined &&
+        (!context.sessionId || context.sessionId.trim() === '')
+      ) {
         throw new Error('Context values cannot be empty strings');
       }
     }
-    
+
     this.context = context;
   }
 
@@ -196,18 +205,18 @@ let cacheInstance: Cache | null = null;
 
 /**
  * Gets the global cache instance.
- * 
+ *
  * NOTE: The global cache instance does not support context-based isolation.
  * For multi-tenant scenarios requiring cache isolation, create separate Cache
  * instances with appropriate context parameters instead of using the global singleton.
- * 
+ *
  * @example
  * // For single-tenant CLI usage (default):
  * const cache = getCache(3600);
- * 
+ *
  * // For multi-tenant scenarios, use separate instances:
  * const tenantCache = new Cache(3600, { tenantId: 'tenant1' });
- * 
+ *
  * @param ttl Default TTL for the cache (only used on first call)
  * @returns Global cache instance without context
  */
