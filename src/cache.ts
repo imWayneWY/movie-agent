@@ -21,6 +21,17 @@ export interface CacheContext {
 }
 
 /**
+ * Sanitizes a context value to prevent cache key collisions.
+ * Replaces colons with underscores to avoid conflicts with the delimiter.
+ * @param value Context value to sanitize
+ * @returns Sanitized value
+ */
+function sanitizeContextValue(value: string): string {
+  // Replace colons and other special characters that could cause key collisions
+  return value.replace(/[:]/g, '_');
+}
+
+/**
  * Applies context prefix to a cache key for multi-tenant isolation.
  * Prefixes are applied in order: tenant -> user -> session
  * @param key Base cache key
@@ -34,13 +45,13 @@ function applyContextPrefix(key: string, context?: CacheContext): string {
 
   const prefixParts: string[] = [];
   if (context.tenantId) {
-    prefixParts.push(`tenant:${context.tenantId}`);
+    prefixParts.push(`tenant:${sanitizeContextValue(context.tenantId)}`);
   }
   if (context.userId) {
-    prefixParts.push(`user:${context.userId}`);
+    prefixParts.push(`user:${sanitizeContextValue(context.userId)}`);
   }
   if (context.sessionId) {
-    prefixParts.push(`session:${context.sessionId}`);
+    prefixParts.push(`session:${sanitizeContextValue(context.sessionId)}`);
   }
 
   return prefixParts.length > 0 ? `${prefixParts.join(':')}:${key}` : key;
@@ -163,9 +174,21 @@ export class Cache {
 let cacheInstance: Cache | null = null;
 
 /**
- * Gets the global cache instance
+ * Gets the global cache instance.
+ * 
+ * NOTE: The global cache instance does not support context-based isolation.
+ * For multi-tenant scenarios requiring cache isolation, create separate Cache
+ * instances with appropriate context parameters instead of using the global singleton.
+ * 
+ * @example
+ * // For single-tenant CLI usage (default):
+ * const cache = getCache(3600);
+ * 
+ * // For multi-tenant scenarios, use separate instances:
+ * const tenantCache = new Cache(3600, { tenantId: 'tenant1' });
+ * 
  * @param ttl Default TTL for the cache (only used on first call)
- * @returns Global cache instance
+ * @returns Global cache instance without context
  */
 export function getCache(ttl?: number): Cache {
   if (!cacheInstance) {

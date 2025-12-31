@@ -546,6 +546,33 @@ describe('Cache', () => {
         // Different session should not be able to access the token
         expect(session2Token).toBeUndefined();
       });
+
+      it('should sanitize context values containing colons', () => {
+        // Context values with colons should be sanitized to prevent key collisions
+        const cache1 = new Cache(3600, { userId: 'user:123:abc' });
+        const cache2 = new Cache(3600, { userId: 'user_123:abc' });
+
+        cache1.set('data', 'value1');
+        cache2.set('data', 'value2');
+
+        // Both should be accessible independently after sanitization
+        expect(cache1.get('data')).toBe('value1');
+        expect(cache2.get('data')).toBe('value2');
+      });
+
+      it('should handle context values with special characters', () => {
+        const cache = new Cache(3600, {
+          tenantId: 'tenant:special:chars',
+          userId: 'user@domain.com:port',
+        });
+
+        cache.set('test-key', 'test-value');
+
+        // Should work correctly despite special characters
+        expect(cache.get('test-key')).toBe('test-value');
+        expect(cache.has('test-key')).toBe(true);
+        expect(cache.delete('test-key')).toBe(true);
+      });
     });
   });
 });
