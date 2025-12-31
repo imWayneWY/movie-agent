@@ -29,7 +29,7 @@ const MAX_SANITIZED_LENGTH = 500;
 /**
  * Sanitizes user input to prevent prompt injection attacks
  * This is specifically for content that will be passed to LLM prompts
- * 
+ *
  * @param input - Raw user input object
  * @returns Sanitized version safe for LLM prompts
  */
@@ -68,7 +68,7 @@ export function sanitizeForLLMPrompt(input: any): any {
 
 /**
  * Sanitizes a string to remove potential prompt injection attacks
- * 
+ *
  * @param str - Input string to sanitize
  * @returns Sanitized string
  */
@@ -121,7 +121,7 @@ export function sanitizeString(str: string): string {
 /**
  * Detects if input contains potential prompt injection attempts
  * This is for logging/monitoring purposes
- * 
+ *
  * @param input - Input to check
  * @returns True if potential injection detected
  */
@@ -130,15 +130,14 @@ export function detectPromptInjection(input: any): boolean {
     return false;
   }
 
-  const inputStr = typeof input === 'string' 
-    ? input 
-    : JSON.stringify(input);
+  const inputStr = typeof input === 'string' ? input : JSON.stringify(input);
 
   // Early termination for very large inputs to prevent performance issues
   const CHECK_LENGTH_LIMIT = 10000;
-  const truncatedInput = inputStr.length > CHECK_LENGTH_LIMIT 
-    ? inputStr.substring(0, CHECK_LENGTH_LIMIT) 
-    : inputStr;
+  const truncatedInput =
+    inputStr.length > CHECK_LENGTH_LIMIT
+      ? inputStr.substring(0, CHECK_LENGTH_LIMIT)
+      : inputStr;
 
   // Reuse sanitization patterns for consistency
   for (const pattern of PROMPT_INJECTION_PATTERNS) {

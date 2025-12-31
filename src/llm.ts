@@ -122,12 +122,14 @@ ${index + 1}. ${movie.title} (${movie.releaseYear})
 
     // Sanitize and format user input to prevent prompt injection
     const sanitizedInput = sanitizeForLLMPrompt(userInput);
-    
+
     // Log potential injection attempts for security monitoring
     if (detectPromptInjection(userInput)) {
-      console.warn('⚠️ Potential prompt injection detected in user input. Input has been sanitized.');
+      console.warn(
+        '⚠️ Potential prompt injection detected in user input. Input has been sanitized.'
+      );
     }
-    
+
     const userInputText = JSON.stringify(sanitizedInput, null, 2);
 
     // Generate formatted output using LLM with timeout
@@ -189,12 +191,14 @@ ${index + 1}. ${movie.title} (${movie.releaseYear})
 
     // Sanitize and format user input to prevent prompt injection
     const sanitizedInput = sanitizeForLLMPrompt(userInput);
-    
+
     // Log potential injection attempts for security monitoring
     if (detectPromptInjection(userInput)) {
-      console.warn('⚠️ Potential prompt injection detected in user input. Input has been sanitized.');
+      console.warn(
+        '⚠️ Potential prompt injection detected in user input. Input has been sanitized.'
+      );
     }
-    
+
     const userInputText = JSON.stringify(sanitizedInput, null, 2);
 
     try {
