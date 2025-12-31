@@ -102,7 +102,7 @@ export class TmdbApiClient {
     this.region = region ?? config.TMDB_REGION;
 
     // Enforce HTTPS-only for security
-    if (!this.baseUrl.startsWith('https://')) {
+    if (!this.baseUrl.toLowerCase().startsWith('https://')) {
       throw new Error(
         'Base URL must use HTTPS protocol for secure API communication'
       );
