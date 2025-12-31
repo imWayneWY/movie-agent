@@ -11,6 +11,8 @@ import {
   validateRuntime,
   validateYear,
   validateYearRange,
+  validateMood,
+  validateGenre,
 } from './validate';
 import { moodToGenres } from './mood';
 import { discoverMovies, DiscoverInput } from './discover';
@@ -251,6 +253,16 @@ export class MovieAgent {
    * @throws Error if validation fails
    */
   private validateInput(input: UserInput): void {
+    // Validate mood if provided
+    if (input.mood !== undefined) {
+      validateMood(input.mood);
+    }
+
+    // Validate genre if provided
+    if (input.genre !== undefined) {
+      validateGenre(input.genre);
+    }
+
     // Validate platforms if provided
     if (input.platforms && input.platforms.length > 0) {
       validatePlatforms(input.platforms);

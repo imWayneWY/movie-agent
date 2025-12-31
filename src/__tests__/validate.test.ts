@@ -1,10 +1,15 @@
 import {
   ALLOWED_PLATFORMS,
+  MAX_MOOD_LENGTH,
+  MAX_GENRE_LENGTH,
+  MAX_ARRAY_LENGTH,
   isValidPlatform,
   validatePlatforms,
   validateRuntime,
   validateYear,
   validateYearRange,
+  validateMood,
+  validateGenre,
 } from '../validate';
 
 describe('validateRuntime', () => {
@@ -77,5 +82,88 @@ describe('isValidPlatform', () => {
   it('returns false for not allowed platforms', () => {
     expect(isValidPlatform('FakePlatform')).toBe(false);
     expect(isValidPlatform('')).toBe(false);
+  });
+});
+
+describe('validateMood', () => {
+  it('accepts valid mood strings', () => {
+    expect(() => validateMood('happy')).not.toThrow();
+    expect(() => validateMood('sad and contemplative')).not.toThrow();
+    expect(() => validateMood('a'.repeat(MAX_MOOD_LENGTH))).not.toThrow();
+  });
+
+  it('throws for empty mood', () => {
+    expect(() => validateMood('')).toThrow(/Mood cannot be empty/);
+    expect(() => validateMood('   ')).toThrow(/Mood cannot be empty/);
+  });
+
+  it('throws for mood exceeding max length', () => {
+    const longMood = 'a'.repeat(MAX_MOOD_LENGTH + 1);
+    expect(() => validateMood(longMood)).toThrow(
+      /Mood must be 100 characters or less/
+    );
+  });
+
+  it('throws for non-string mood', () => {
+    expect(() => validateMood(123 as any)).toThrow(/Mood must be a string/);
+    expect(() => validateMood(null as any)).toThrow(/Mood must be a string/);
+  });
+});
+
+describe('validateGenre', () => {
+  it('accepts valid genre strings', () => {
+    expect(() => validateGenre('Action')).not.toThrow();
+    expect(() => validateGenre('Science Fiction')).not.toThrow();
+    expect(() => validateGenre('a'.repeat(MAX_GENRE_LENGTH))).not.toThrow();
+  });
+
+  it('accepts valid genre arrays', () => {
+    expect(() => validateGenre(['Action', 'Comedy'])).not.toThrow();
+    expect(() => validateGenre(['Drama'])).not.toThrow();
+    const maxGenres = Array(MAX_ARRAY_LENGTH).fill('Action');
+    expect(() => validateGenre(maxGenres)).not.toThrow();
+  });
+
+  it('throws for empty genre string', () => {
+    expect(() => validateGenre('')).toThrow(/Genre cannot be empty/);
+    expect(() => validateGenre('   ')).toThrow(/Genre cannot be empty/);
+  });
+
+  it('throws for empty genre in array', () => {
+    expect(() => validateGenre(['Action', ''])).toThrow(
+      /Genre cannot be empty/
+    );
+    expect(() => validateGenre(['Action', '   '])).toThrow(
+      /Genre cannot be empty/
+    );
+  });
+
+  it('throws for genre exceeding max length', () => {
+    const longGenre = 'a'.repeat(MAX_GENRE_LENGTH + 1);
+    expect(() => validateGenre(longGenre)).toThrow(
+      /Genre must be 50 characters or less/
+    );
+  });
+
+  it('throws for genre array exceeding max length', () => {
+    const tooManyGenres = Array(MAX_ARRAY_LENGTH + 1).fill('Action');
+    expect(() => validateGenre(tooManyGenres)).toThrow(
+      /Too many genres: maximum 10 allowed/
+    );
+  });
+
+  it('throws for non-string genre in array', () => {
+    expect(() => validateGenre(['Action', 123 as any])).toThrow(
+      /Genre must be a string/
+    );
+  });
+});
+
+describe('validatePlatforms with array length check', () => {
+  it('throws for too many platforms', () => {
+    const tooManyPlatforms = Array(MAX_ARRAY_LENGTH + 1).fill('Netflix');
+    expect(() => validatePlatforms(tooManyPlatforms)).toThrow(
+      /Too many platforms: maximum 10 allowed/
+    );
   });
 });
