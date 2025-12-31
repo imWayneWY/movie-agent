@@ -125,7 +125,15 @@ describe('Error Handling Tests', () => {
 
     beforeEach(() => {
       mockClient = new InvalidApiKeyMockClient();
-      agent = new MovieAgent(mockClient, () => {}); // Silent logger
+      agent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
     });
 
     it('should return INVALID_API_KEY error when API key is invalid', async () => {
@@ -177,7 +185,15 @@ describe('Error Handling Tests', () => {
 
     beforeEach(() => {
       mockClient = new RateLimitMockClient();
-      agent = new MovieAgent(mockClient, () => {});
+      agent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
     });
 
     it('should return RATE_LIMIT_EXCEEDED error when rate limit is hit', async () => {
@@ -227,7 +243,15 @@ describe('Error Handling Tests', () => {
 
     beforeEach(() => {
       mockClient = new McpUnavailableMockClient();
-      agent = new MovieAgent(mockClient, () => {});
+      agent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
     });
 
     it('should return MCP_UNAVAILABLE error when connection is refused', async () => {
@@ -292,7 +316,15 @@ describe('Error Handling Tests', () => {
       }
 
       const partialClient = new PartialFailureMockClient();
-      const partialAgent = new MovieAgent(partialClient, () => {});
+      const partialAgent = new MovieAgent(
+        partialClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
 
       const input: UserInput = {
         mood: 'adventurous',
@@ -334,7 +366,15 @@ describe('Error Handling Tests', () => {
       }
 
       const timeoutClient = new TimeoutMockClient();
-      const timeoutAgent = new MovieAgent(timeoutClient, () => {});
+      const timeoutAgent = new MovieAgent(
+        timeoutClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
 
       const input: UserInput = {
         mood: 'happy',
@@ -408,7 +448,15 @@ describe('Error Handling Tests', () => {
       }
 
       const mockClient = new ValidMockClient();
-      agent = new MovieAgent(mockClient, () => {});
+      agent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
     });
 
     it('should return VALIDATION_ERROR for invalid platform', async () => {
@@ -527,7 +575,15 @@ describe('Error Handling Tests', () => {
       }
 
       const mockClient = new NoResultsMockClient();
-      agent = new MovieAgent(mockClient, () => {});
+      agent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
     });
 
     it('should return NO_RESULTS error when no movies match criteria', async () => {
@@ -590,7 +646,15 @@ describe('Error Handling Tests', () => {
       }
 
       const mockClient = new UnknownErrorMockClient();
-      agent = new MovieAgent(mockClient, () => {});
+      agent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
     });
 
     it('should return UNKNOWN_ERROR for unexpected errors', async () => {
@@ -637,7 +701,15 @@ describe('Error Handling Tests', () => {
       }
 
       const mockClient = new NonErrorMockClient();
-      const mockAgent = new MovieAgent(mockClient, () => {});
+      const mockAgent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
 
       const input: UserInput = {
         mood: 'happy',
@@ -654,7 +726,15 @@ describe('Error Handling Tests', () => {
   describe('Error Response Structure', () => {
     it('should have consistent error response structure', async () => {
       const mockClient = new InvalidApiKeyMockClient();
-      const agent = new MovieAgent(mockClient, () => {});
+      const agent = new MovieAgent(
+        mockClient,
+        () => {},
+        false,
+        undefined,
+        undefined,
+        undefined,
+        true
+      ); // Enable debug mode for tests
 
       const input: UserInput = {
         mood: 'adventurous',

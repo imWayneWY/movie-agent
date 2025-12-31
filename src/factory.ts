@@ -108,7 +108,8 @@ export class MovieAgentFactory {
       enableLLM,
       llmProvider,
       llmApiKey,
-      azureConfig
+      azureConfig,
+      config.debug
     );
   }
 
