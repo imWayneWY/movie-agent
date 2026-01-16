@@ -498,6 +498,7 @@ export class MovieAgent {
           runtime: movie.runtime || 0,
           overview: movie.overview || '',
           genres: movie.genres || [],
+          poster_path: movie.poster_path,
         },
         streamingPlatforms,
         reason

@@ -64,6 +64,8 @@ export interface MovieRecommendation {
   streamingPlatforms: StreamingPlatform[];
   /** Explanation of why this movie was recommended */
   matchReason: string;
+  /** URL to movie poster image (w500 size) */
+  posterUrl: string | null;
 }
 
 /**

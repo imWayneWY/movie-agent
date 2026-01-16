@@ -15,6 +15,8 @@ export interface MovieSummary {
   genre_ids?: number[];
   vote_average?: number;
   popularity?: number;
+  /** Path to poster image (e.g., "/abc123.jpg") */
+  poster_path?: string | null;
 }
 
 export interface DiscoverMoviesParams {

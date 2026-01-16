@@ -21,5 +21,8 @@ export { default as TmdbApiClient } from './tmdbApi';
 // Export LLM service for advanced use cases
 export { LLMService, getLLMService } from './llm';
 
+// Export poster URL utilities
+export { buildPosterUrl, TMDB_IMAGE_BASE_URL } from './format';
+
 // Default export is the factory for convenience
 export { MovieAgentFactory as default } from './factory';

@@ -52,8 +52,30 @@ export function buildDescription(overview: string): string {
 }
 
 /**
+ * TMDb image base URL for constructing poster URLs
+ * @see https://developer.themoviedb.org/docs/image-basics
+ */
+export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
+
+/**
+ * Builds a full poster URL from a TMDb poster_path
+ * @param posterPath - The poster_path from TMDb API (e.g., "/abc123.jpg")
+ * @param size - Image size (default: 'w500')
+ * @returns Full URL to the poster image, or null if no poster available
+ */
+export function buildPosterUrl(
+  posterPath: string | null | undefined,
+  size: string = 'w500'
+): string | null {
+  if (!posterPath) {
+    return null;
+  }
+  return `${TMDB_IMAGE_BASE_URL}${size}${posterPath}`;
+}
+
+/**
  * Formats a movie with streaming providers into a MovieRecommendation
- * @param movie - TMDb movie object with id, title, release_date, runtime, overview, genres
+ * @param movie - TMDb movie object with id, title, release_date, runtime, overview, genres, poster_path
  * @param providers - Streaming provider information
  * @param reason - Why this movie was recommended
  * @returns Formatted MovieRecommendation
@@ -66,6 +88,7 @@ export function toRecommendation(
     runtime: number;
     overview: string;
     genres: Array<{ id: number; name: string }>;
+    poster_path?: string | null;
   },
   providers: StreamingPlatform[],
   reason: string
@@ -73,6 +96,7 @@ export function toRecommendation(
   const releaseYear = new Date(movie.release_date).getFullYear();
   const description = buildDescription(movie.overview);
   const genres = movie.genres.map(g => g.name);
+  const posterUrl = buildPosterUrl(movie.poster_path);
 
   return {
     title: movie.title,
@@ -82,6 +106,7 @@ export function toRecommendation(
     genres,
     streamingPlatforms: providers,
     matchReason: reason,
+    posterUrl,
   };
 }
 

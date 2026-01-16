@@ -59,6 +59,7 @@ describe('LLMService', () => {
           { name: 'Prime Video', type: 'subscription', available: false },
         ],
         matchReason: 'Matches your excited mood',
+        posterUrl: 'https://image.tmdb.org/t/p/w500/test.jpg',
       },
       {
         title: 'Another Movie',
@@ -68,6 +69,7 @@ describe('LLMService', () => {
         description: 'A funny test movie.',
         streamingPlatforms: [],
         matchReason: 'Highly rated',
+        posterUrl: null,
       },
     ],
     metadata: {
@@ -210,6 +212,7 @@ describe('LLMService', () => {
             description: 'A test movie.',
             streamingPlatforms: [],
             matchReason: 'Matches preferences',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/test.jpg',
           },
         ],
         metadata: {

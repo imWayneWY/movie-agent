@@ -179,7 +179,8 @@ interface UserInput {
       "genres": ["Action", "Adventure"],
       "description": "...",
       "streamingPlatforms": [...],
-      "matchReason": "..."
+      "matchReason": "...",
+      "posterUrl": "https://image.tmdb.org/t/p/w500/abc123.jpg"
     }
   ],
   "metadata": {...}
@@ -508,7 +509,13 @@ import {
   AgentResponse,
   MovieRecommendation,
   ErrorResponse,
+  buildPosterUrl,        // Utility to build poster URLs with different sizes
+  TMDB_IMAGE_BASE_URL,   // Base URL for TMDb images
 } from 'movie-agent';
+
+// Build poster URL with custom size (default is w500)
+const smallPoster = buildPosterUrl('/abc123.jpg', 'w185');
+// => "https://image.tmdb.org/t/p/w185/abc123.jpg"
 ```
 
 ## Response Format
@@ -533,6 +540,7 @@ interface MovieRecommendation {
   overview: string;
   streamingPlatforms: StreamingPlatform[];
   matchReason: string;
+  posterUrl: string | null;  // Full URL to movie poster image (w500 size)
 }
 ```
 

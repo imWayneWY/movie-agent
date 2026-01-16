@@ -1,5 +1,11 @@
 import { describe, it, expect } from '@jest/globals';
-import { buildDescription, toRecommendation, formatResponse } from '../format';
+import {
+  buildDescription,
+  toRecommendation,
+  formatResponse,
+  buildPosterUrl,
+  TMDB_IMAGE_BASE_URL,
+} from '../format';
 import { MovieRecommendation, StreamingPlatform } from '../types';
 
 describe('format', () => {
@@ -48,6 +54,35 @@ describe('format', () => {
     });
   });
 
+  describe('buildPosterUrl', () => {
+    it('should build a full poster URL with default size', () => {
+      const posterPath = '/abc123.jpg';
+      const result = buildPosterUrl(posterPath);
+      expect(result).toBe(`${TMDB_IMAGE_BASE_URL}w500${posterPath}`);
+    });
+
+    it('should build a poster URL with custom size', () => {
+      const posterPath = '/abc123.jpg';
+      const result = buildPosterUrl(posterPath, 'w342');
+      expect(result).toBe(`${TMDB_IMAGE_BASE_URL}w342${posterPath}`);
+    });
+
+    it('should return null for null poster_path', () => {
+      const result = buildPosterUrl(null);
+      expect(result).toBeNull();
+    });
+
+    it('should return null for undefined poster_path', () => {
+      const result = buildPosterUrl(undefined);
+      expect(result).toBeNull();
+    });
+
+    it('should return null for empty string poster_path', () => {
+      const result = buildPosterUrl('');
+      expect(result).toBeNull();
+    });
+  });
+
   describe('toRecommendation', () => {
     const mockMovie = {
       id: 123,
@@ -59,6 +94,7 @@ describe('format', () => {
         { id: 1, name: 'Action' },
         { id: 2, name: 'Adventure' },
       ],
+      poster_path: '/abc123.jpg',
     };
 
     const mockProviders: StreamingPlatform[] = [
@@ -78,6 +114,7 @@ describe('format', () => {
       expect(result).toHaveProperty('genres');
       expect(result).toHaveProperty('streamingPlatforms');
       expect(result).toHaveProperty('matchReason');
+      expect(result).toHaveProperty('posterUrl');
     });
 
     it('should correctly extract release year from date', () => {
@@ -116,6 +153,23 @@ describe('format', () => {
       const result = toRecommendation(mockMovie, mockProviders, mockReason);
       expect(result.matchReason).toBe(mockReason);
     });
+
+    it('should include posterUrl when poster_path is provided', () => {
+      const result = toRecommendation(mockMovie, mockProviders, mockReason);
+      expect(result.posterUrl).toBe(
+        `${TMDB_IMAGE_BASE_URL}w500${mockMovie.poster_path}`
+      );
+    });
+
+    it('should return null posterUrl when poster_path is missing', () => {
+      const movieWithoutPoster = { ...mockMovie, poster_path: null };
+      const result = toRecommendation(
+        movieWithoutPoster,
+        mockProviders,
+        mockReason
+      );
+      expect(result.posterUrl).toBeNull();
+    });
   });
 
   describe('formatResponse', () => {
@@ -129,6 +183,7 @@ describe('format', () => {
         { name: 'Netflix', type: 'subscription', available: true },
       ],
       matchReason: 'Test reason',
+      posterUrl: 'https://image.tmdb.org/t/p/w500/abc123.jpg',
     };
 
     it('should accept 3 recommendations', () => {
