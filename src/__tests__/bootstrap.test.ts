@@ -19,7 +19,7 @@ describe('MovieAgent Bootstrap', () => {
 
   it('should create agent via factory', () => {
     const agent = MovieAgentFactory.create({
-      tmdbApiKey: 'test-api-key',
+      tmdbAccessToken: 'test-api-key',
       tmdbRegion: 'CA',
     });
     expect(agent).toBeInstanceOf(MovieAgent);
@@ -28,8 +28,8 @@ describe('MovieAgent Bootstrap', () => {
   it('should throw error when factory called without API key', () => {
     expect(() => {
       MovieAgentFactory.create({
-        tmdbApiKey: '',
+        tmdbAccessToken: '',
       });
-    }).toThrow(/TMDB API key is required/);
+    }).toThrow(/TMDB access token is required/);
   });
 });

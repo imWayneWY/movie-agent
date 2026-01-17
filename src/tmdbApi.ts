@@ -109,7 +109,7 @@ export class TmdbApiClient {
     timeoutMs?: number
   ) {
     this.baseUrl = baseUrl ?? config.TMDB_BASE_URL;
-    this.apiKey = apiKey ?? config.TMDB_API_KEY;
+    this.apiKey = (apiKey ?? config.TMDB_ACCESS_TOKEN).trim();
     this.region = region ?? config.TMDB_REGION;
     this.timeoutMs = timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
@@ -135,7 +135,7 @@ export class TmdbApiClient {
       ? this.baseUrl
       : this.baseUrl + '/';
     const url = new URL(path, normalizedBase);
-    // TMDb v3 API key is now passed via Authorization header for security
+    // API key is passed via Authorization header for security
     if (params) {
       for (const [k, v] of Object.entries(params)) {
         if (v !== undefined && v !== null) {

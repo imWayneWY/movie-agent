@@ -5,13 +5,13 @@ describe('buildDiscoverParams', () => {
   let buildDiscoverParams: any;
 
   beforeAll(async () => {
-    process.env.TMDB_API_KEY = 'test-api-key';
+    process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
     jest.resetModules();
     ({ buildDiscoverParams } = await import('../discover'));
   });
 
   afterAll(() => {
-    delete process.env.TMDB_API_KEY;
+    delete process.env.TMDB_ACCESS_TOKEN;
   });
 
   describe('genre handling', () => {
@@ -229,7 +229,7 @@ describe('discoverMovies', () => {
   let resetCache: any;
 
   beforeAll(async () => {
-    process.env.TMDB_API_KEY = 'test-api-key';
+    process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
     jest.resetModules();
     ({ discoverMovies } = await import('../discover'));
     ({ default: TmdbApiClient } = await import('../tmdbApi'));
@@ -241,7 +241,7 @@ describe('discoverMovies', () => {
   });
 
   afterAll(() => {
-    delete process.env.TMDB_API_KEY;
+    delete process.env.TMDB_ACCESS_TOKEN;
   });
 
   it('calls apiClient.discoverMovies with built params', async () => {

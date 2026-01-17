@@ -1,11 +1,11 @@
-// Opt-in live test: requires real TMDB API key.
-// Run with: LIVE_TEST=1 TMDB_API_KEY=... npm test -- -t "TmdbApiClient Live"
+// Opt-in live test: requires real TMDB access token.
+// Run with: LIVE_TEST=1 TMDB_ACCESS_TOKEN=... npm test -- -t "TmdbApiClient Live"
 
 describe('TmdbApiClient Live', () => {
   let TmdbApiClient: any;
   let client: any;
 
-  const required = ['TMDB_API_KEY'];
+  const required = ['TMDB_ACCESS_TOKEN'];
   const hasEnv =
     process.env.LIVE_TEST === '1' && required.every(k => !!process.env[k]);
 

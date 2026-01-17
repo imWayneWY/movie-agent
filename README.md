@@ -85,7 +85,7 @@ import { MovieAgentFactory } from 'movie-agent';
 
 // Create agent with explicit configuration (Gemini)
 const agent = MovieAgentFactory.create({
-  tmdbApiKey: process.env.TMDB_API_KEY!,
+  tmdbAccessToken: process.env.TMDB_ACCESS_TOKEN!,
   tmdbRegion: 'CA',
   llmProvider: 'gemini',
   geminiApiKey: process.env.GEMINI_API_KEY,
@@ -94,7 +94,7 @@ const agent = MovieAgentFactory.create({
 
 // Or use Azure OpenAI
 const agentWithAzure = MovieAgentFactory.create({
-  tmdbApiKey: process.env.TMDB_API_KEY!,
+  tmdbAccessToken: process.env.TMDB_ACCESS_TOKEN!,
   tmdbRegion: 'CA',
   llmProvider: 'azure',
   azureOpenAiApiKey: process.env.AZURE_OPENAI_API_KEY,
@@ -385,7 +385,7 @@ function MovieRecommendations() {
 
 ```bash
 # Required
-TMDB_API_KEY=your_tmdb_api_key_here
+TMDB_ACCESS_TOKEN=your_tmdb_api_key_here
 
 # LLM Provider Selection (optional)
 LLM_PROVIDER=gemini  # Options: gemini, azure
@@ -414,7 +414,7 @@ The package supports multiple LLM providers for AI-formatted output:
 #### Google Gemini (Default)
 ```typescript
 const agent = MovieAgentFactory.create({
-  tmdbApiKey: 'your-tmdb-key',
+  tmdbAccessToken: 'your-tmdb-key',
   llmProvider: 'gemini',
   geminiApiKey: 'your-gemini-key',
 });
@@ -423,7 +423,7 @@ const agent = MovieAgentFactory.create({
 #### Azure OpenAI
 ```typescript
 const agent = MovieAgentFactory.create({
-  tmdbApiKey: 'your-tmdb-key',
+  tmdbAccessToken: 'your-tmdb-key',
   llmProvider: 'azure',
   azureOpenAiApiKey: 'your-azure-key',
   azureOpenAiEndpoint: 'https://your-resource.openai.azure.com/',

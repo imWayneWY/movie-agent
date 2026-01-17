@@ -163,16 +163,16 @@ async function main() {
       require('dotenv').config({ path: envPath });
     }
 
-    // Check for TMDb API key
-    if (!process.env.TMDB_API_KEY) {
+    // Check for TMDb access token
+    if (!process.env.TMDB_ACCESS_TOKEN) {
       console.error(`
-❌ Error: TMDb API key not found
+❌ Error: TMDb access token not found
 
-Please set the TMDB_API_KEY environment variable:
-  export TMDB_API_KEY=your_api_key_here
+Please set the TMDB_ACCESS_TOKEN environment variable:
+  export TMDB_ACCESS_TOKEN=your_api_key_here
 
 Or create a .env.development file with:
-  TMDB_API_KEY=your_api_key_here
+  TMDB_ACCESS_TOKEN=your_api_key_here
 `);
       process.exit(1);
     }

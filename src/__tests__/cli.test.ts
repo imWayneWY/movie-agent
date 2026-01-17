@@ -86,7 +86,7 @@ describe('CLI', () => {
 
     it('should display help when no arguments are provided', async () => {
       const { stdout, exitCode } = await runCLI([], {
-        TMDB_API_KEY: 'test-key',
+        TMDB_ACCESS_TOKEN: 'test-key',
       });
 
       expect(exitCode).toBe(0);
@@ -97,26 +97,26 @@ describe('CLI', () => {
   describe('Error Handling', () => {
     it('should handle unknown flags gracefully', async () => {
       const { stderr, exitCode } = await runCLI(['--unknown', 'value'], {
-        TMDB_API_KEY: 'test-key',
+        TMDB_ACCESS_TOKEN: 'test-key',
       });
 
       expect(exitCode).toBe(1);
       expect(stderr).toContain('Unknown flag');
     });
 
-    it('should display error message when TMDB_API_KEY is missing', async () => {
+    it('should display error message when TMDB_ACCESS_TOKEN is missing', async () => {
       const { stderr, exitCode } = await runCLI(['--mood', 'happy'], {
-        TMDB_API_KEY: '',
+        TMDB_ACCESS_TOKEN: '',
       });
 
       expect(exitCode).toBe(1);
-      expect(stderr).toContain('TMDb API key not found');
+      expect(stderr).toContain('TMDb access token not found');
     });
   });
 
   describe('Output Format Validation', () => {
     // These tests validate the output structure when the CLI successfully runs
-    // Note: These tests require LIVE_TEST=1 and a valid TMDB_API_KEY to make real API calls
+    // Note: These tests require LIVE_TEST=1 and a valid TMDB_ACCESS_TOKEN to make real API calls
     // Skip them if LIVE_TEST is not enabled or no API key is available
 
     beforeAll(() => {
@@ -129,9 +129,9 @@ describe('CLI', () => {
       if (process.env.LIVE_TEST !== '1') {
         return false;
       }
-      if (!process.env.TMDB_API_KEY) {
+      if (!process.env.TMDB_ACCESS_TOKEN) {
         console.log(
-          '⚠️  Skipping CLI output validation tests: TMDB_API_KEY not set'
+          '⚠️  Skipping CLI output validation tests: TMDB_ACCESS_TOKEN not set'
         );
         return false;
       }
@@ -242,51 +242,51 @@ describe('CLI', () => {
   describe('Argument Parsing', () => {
     it('should accept mood flag', async () => {
       const { stderr } = await runCLI(['--mood', 'excited'], {
-        TMDB_API_KEY: '',
+        TMDB_ACCESS_TOKEN: '',
       });
 
       // If API key missing, it should fail at the API key check, not argument parsing
-      expect(stderr).toContain('TMDb API key');
+      expect(stderr).toContain('TMDb access token');
     });
 
     it('should accept platforms flag', async () => {
       const { stderr } = await runCLI(['--platforms', 'Netflix,Prime Video'], {
-        TMDB_API_KEY: '',
+        TMDB_ACCESS_TOKEN: '',
       });
 
-      expect(stderr).toContain('TMDb API key');
+      expect(stderr).toContain('TMDb access token');
     });
 
     it('should accept genre flag', async () => {
       const { stderr } = await runCLI(['--genre', 'Action,Thriller'], {
-        TMDB_API_KEY: '',
+        TMDB_ACCESS_TOKEN: '',
       });
 
-      expect(stderr).toContain('TMDb API key');
+      expect(stderr).toContain('TMDb access token');
     });
 
     it('should accept runtime flags', async () => {
       const { stderr } = await runCLI(
         ['--runtimeMin', '90', '--runtimeMax', '150'],
-        { TMDB_API_KEY: '' }
+        { TMDB_ACCESS_TOKEN: '' }
       );
 
-      expect(stderr).toContain('TMDb API key');
+      expect(stderr).toContain('TMDb access token');
     });
 
     it('should accept year flags', async () => {
       const { stderr } = await runCLI(
         ['--yearFrom', '2020', '--yearTo', '2023'],
-        { TMDB_API_KEY: '' }
+        { TMDB_ACCESS_TOKEN: '' }
       );
 
-      expect(stderr).toContain('TMDb API key');
+      expect(stderr).toContain('TMDb access token');
     });
 
     it('should accept single year flag', async () => {
-      const { stderr } = await runCLI(['--year', '2023'], { TMDB_API_KEY: '' });
+      const { stderr } = await runCLI(['--year', '2023'], { TMDB_ACCESS_TOKEN: '' });
 
-      expect(stderr).toContain('TMDb API key');
+      expect(stderr).toContain('TMDb access token');
     });
   });
 });

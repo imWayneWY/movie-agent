@@ -241,7 +241,7 @@ describe('MovieAgent', () => {
 
   beforeEach(() => {
     // Set up environment
-    process.env.TMDB_API_KEY = 'test-api-key';
+    process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
 
     // Create mock client
     mockClient = new MockTmdbClient();
@@ -257,7 +257,7 @@ describe('MovieAgent', () => {
   });
 
   afterEach(() => {
-    delete process.env.TMDB_API_KEY;
+    delete process.env.TMDB_ACCESS_TOKEN;
   });
 
   describe('getRecommendations', () => {
@@ -647,12 +647,19 @@ describe('MovieAgent', () => {
 
   describe('invoke', () => {
     it('should return formatted string output without LLM service', async () => {
+      // Create agent with LLM explicitly disabled to test fallback format
+      const agentNoLLM = new MovieAgent(
+        mockClient,
+        (msg) => logMessages.push(msg),
+        false // disable LLM
+      );
+
       const input: UserInput = {
         mood: 'excited',
         platforms: ['Netflix'],
       };
 
-      const result = await agent.invoke(input);
+      const result = await agentNoLLM.invoke(input);
 
       expect(typeof result).toBe('string');
       expect(result).toContain('🎬 Movie Recommendations');
@@ -677,6 +684,13 @@ describe('MovieAgent', () => {
 
   describe('stream', () => {
     it('should stream formatted output without LLM service', async () => {
+      // Create agent with LLM explicitly disabled to test fallback format
+      const agentNoLLM = new MovieAgent(
+        mockClient,
+        (msg) => logMessages.push(msg),
+        false // disable LLM
+      );
+
       const input: UserInput = {
         mood: 'excited',
         platforms: ['Netflix'],
@@ -685,7 +699,7 @@ describe('MovieAgent', () => {
       const chunks: string[] = [];
       const onChunk = jest.fn((chunk: string) => chunks.push(chunk));
 
-      const result = await agent.stream(input, onChunk);
+      const result = await agentNoLLM.stream(input, onChunk);
 
       expect(result).toBeUndefined();
       expect(onChunk).toHaveBeenCalled();
@@ -716,12 +730,19 @@ describe('MovieAgent', () => {
 
   describe('fallbackFormat', () => {
     it('should format complete response with all fields', async () => {
+      // Create agent with LLM explicitly disabled to test fallback format
+      const agentNoLLM = new MovieAgent(
+        mockClient,
+        (msg) => logMessages.push(msg),
+        false // disable LLM
+      );
+
       const input: UserInput = {
         mood: 'excited',
         platforms: ['Netflix'],
       };
 
-      const result = await agent.invoke(input);
+      const result = await agentNoLLM.invoke(input);
 
       expect(typeof result).toBe('string');
       expect(result).toContain('🎬 Movie Recommendations');
@@ -761,11 +782,18 @@ describe('MovieAgent', () => {
     });
 
     it('should format multiple recommendations', async () => {
+      // Create agent with LLM explicitly disabled to test fallback format
+      const agentNoLLM = new MovieAgent(
+        mockClient,
+        (msg) => logMessages.push(msg),
+        false // disable LLM
+      );
+
       const input: UserInput = {
         mood: 'excited',
       };
 
-      const result = await agent.invoke(input);
+      const result = await agentNoLLM.invoke(input);
 
       expect(typeof result).toBe('string');
       expect(result).toMatch(/1\. \*\*/);

@@ -616,7 +616,7 @@ LangChain Agent
 ### 9.1 Environment Variables
 ```bash
 # TMDb REST API Configuration
-TMDB_API_KEY=your_tmdb_key
+TMDB_ACCESS_TOKEN=your_tmdb_key
 TMDB_BASE_URL=https://api.themoviedb.org/3
 TMDB_REGION=CA (for Canadian watch providers)
 

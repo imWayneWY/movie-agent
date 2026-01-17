@@ -7,7 +7,7 @@ import TmdbApiClient from './tmdbApi';
  */
 export interface MovieAgentConfig {
   // TMDb Configuration (required)
-  tmdbApiKey: string;
+  tmdbAccessToken: string;
   tmdbBaseUrl?: string;
   tmdbRegion?: string;
 
@@ -40,7 +40,7 @@ export interface MovieAgentConfig {
  * import { MovieAgentFactory } from 'movie-agent';
  *
  * const agent = MovieAgentFactory.create({
- *   tmdbApiKey: process.env.TMDB_API_KEY,
+ *   tmdbAccessToken: process.env.TMDB_ACCESS_TOKEN,
  *   tmdbRegion: 'CA',
  *   debug: true
  * });
@@ -61,16 +61,16 @@ export class MovieAgentFactory {
    */
   static create(config: MovieAgentConfig): MovieAgent {
     // Validate required configuration
-    if (!config.tmdbApiKey) {
+    if (!config.tmdbAccessToken) {
       throw new Error(
-        'TMDB API key is required. Please provide tmdbApiKey in the configuration.'
+        'TMDB access token is required. Please provide tmdbAccessToken in the configuration.'
       );
     }
 
     // Create TMDb API client with provided configuration
     const tmdbClient = new TmdbApiClient(
       config.tmdbBaseUrl || 'https://api.themoviedb.org/3',
-      config.tmdbApiKey,
+      config.tmdbAccessToken,
       config.tmdbRegion || 'CA'
     );
 
@@ -121,7 +121,7 @@ export class MovieAgentFactory {
    * environment variable names.
    *
    * Expected environment variables:
-   * - TMDB_API_KEY (required)
+   * - TMDB_ACCESS_TOKEN (required)
    * - TMDB_BASE_URL (optional)
    * - TMDB_REGION (optional, defaults to 'CA')
    * - LLM_PROVIDER (optional)
@@ -133,7 +133,7 @@ export class MovieAgentFactory {
    *
    * @param debug - Enable debug logging (default: false)
    * @returns A fully configured MovieAgent instance
-   * @throws Error if TMDB_API_KEY is not set in environment
+   * @throws Error if TMDB_ACCESS_TOKEN is not set in environment
    *
    * @example
    * ```typescript
@@ -147,17 +147,17 @@ export class MovieAgentFactory {
    * ```
    */
   static fromEnv(debug = false): MovieAgent {
-    const tmdbApiKey = process.env.TMDB_API_KEY;
+    const tmdbAccessToken = process.env.TMDB_ACCESS_TOKEN;
 
-    if (!tmdbApiKey) {
+    if (!tmdbAccessToken) {
       throw new Error(
-        'TMDB_API_KEY environment variable is required. ' +
+        'TMDB_ACCESS_TOKEN environment variable is required. ' +
           'Please set it in your .env file or environment.'
       );
     }
 
     return MovieAgentFactory.create({
-      tmdbApiKey,
+      tmdbAccessToken,
       tmdbBaseUrl: process.env.TMDB_BASE_URL,
       tmdbRegion: process.env.TMDB_REGION,
       llmProvider:

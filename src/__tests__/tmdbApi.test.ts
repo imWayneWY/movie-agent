@@ -13,7 +13,7 @@ describe('TmdbApiClient', () => {
 
   beforeEach(async () => {
     process.env.TMDB_BASE_URL = BASE_URL;
-    process.env.TMDB_API_KEY = API_KEY;
+    process.env.TMDB_ACCESS_TOKEN = API_KEY;
     process.env.TMDB_REGION = REGION;
     jest.resetModules();
     ({ default: TmdbApiClient } = await import('../tmdbApi'));
@@ -23,7 +23,7 @@ describe('TmdbApiClient', () => {
 
   afterAll(() => {
     delete process.env.TMDB_BASE_URL;
-    delete process.env.TMDB_API_KEY;
+    delete process.env.TMDB_ACCESS_TOKEN;
     delete process.env.TMDB_REGION;
     global.fetch = originalFetch;
   });
@@ -176,7 +176,7 @@ describe('TmdbApiClient', () => {
     await expect(client.searchMovies('x')).rejects.toThrow(/Invalid JSON/);
   });
 
-  test('uses Authorization header instead of query parameter for security', async () => {
+  test('uses Bearer token for secure authentication', async () => {
     const sample = { genres: [{ id: 10, name: 'Action' }] };
     mockFetchOk(sample);
     await client.getGenres();
@@ -184,11 +184,11 @@ describe('TmdbApiClient', () => {
     const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
     const options = (global.fetch as jest.Mock).mock.calls[0][1];
 
-    // Verify API key is NOT in URL (security issue)
+    // Verify API key is NOT in URL (security best practice)
     expect(url).not.toContain('api_key');
     expect(url).not.toContain(API_KEY);
 
-    // Verify API key IS in Authorization header (secure method)
+    // Verify access token IS in Authorization header
     expect(options.headers.Authorization).toBe(`Bearer ${API_KEY}`);
     expect(options.headers.Accept).toBe('application/json');
   });

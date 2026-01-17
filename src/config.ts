@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export interface Config {
-  TMDB_API_KEY: string;
+  TMDB_ACCESS_TOKEN: string;
   TMDB_BASE_URL: string;
   TMDB_REGION: string;
   CACHE_TTL: number;
@@ -35,7 +35,7 @@ const LLM_PROVIDER = getEnvVar('LLM_PROVIDER', false, 'gemini')! as
   | 'azure';
 
 const config: Config = {
-  TMDB_API_KEY: getEnvVar('TMDB_API_KEY', false) || '', // Made optional - factory pattern handles this
+  TMDB_ACCESS_TOKEN: getEnvVar('TMDB_ACCESS_TOKEN', false) || '', // Made optional - factory pattern handles this
   TMDB_BASE_URL: getEnvVar(
     'TMDB_BASE_URL',
     false,

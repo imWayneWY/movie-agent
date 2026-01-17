@@ -178,8 +178,8 @@ Deliverables:
 Implement configuration management for the Movie Agent.
 
 Requirements:
-- Create src/config.ts that reads environment variables: TMDB_API_KEY, TMDB_BASE_URL, TMDB_REGION, CACHE_TTL, MAX_RECOMMENDATIONS, MIN_RECOMMENDATIONS
-- Use dotenv to load .env; validate required key TMDB_API_KEY; default TMDB_BASE_URL to "https://api.themoviedb.org/3"; default TMDB_REGION to "CA", CACHE_TTL to 86400, MAX_RECOMMENDATIONS to 5, MIN_RECOMMENDATIONS to 3
+- Create src/config.ts that reads environment variables: TMDB_ACCESS_TOKEN, TMDB_BASE_URL, TMDB_REGION, CACHE_TTL, MAX_RECOMMENDATIONS, MIN_RECOMMENDATIONS
+- Use dotenv to load .env; validate required key TMDB_ACCESS_TOKEN; default TMDB_BASE_URL to "https://api.themoviedb.org/3"; default TMDB_REGION to "CA", CACHE_TTL to 86400, MAX_RECOMMENDATIONS to 5, MIN_RECOMMENDATIONS to 3
 - Export a typed Config object
 - Fail-fast with descriptive errors when required keys are missing
 
@@ -244,7 +244,7 @@ Requirements:
   - searchMovies(query)
   - getGenres()
   - getWatchProviders(movieId)
-- Read TMDB_BASE_URL and TMDB_API_KEY from config
+- Read TMDB_BASE_URL and TMDB_ACCESS_TOKEN from config
 - All methods return typed results; include minimal interfaces
 - Add error handling: network errors, non-200 responses
 

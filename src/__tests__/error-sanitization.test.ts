@@ -88,7 +88,7 @@ describe('Error Sanitization Tests', () => {
 
       assertIsErrorResponse(response);
       expect(response.errorType).toBe('INVALID_API_KEY');
-      expect(response.message).toBe('Invalid or missing TMDB API key');
+      expect(response.message).toBe('Invalid or missing TMDB access token');
       // Details should NOT be exposed to user
       expect(response.details).toBeUndefined();
     });
@@ -151,7 +151,7 @@ describe('Error Sanitization Tests', () => {
 
       assertIsErrorResponse(response);
       expect(response.errorType).toBe('INVALID_API_KEY');
-      expect(response.message).toBe('Invalid or missing TMDB API key');
+      expect(response.message).toBe('Invalid or missing TMDB access token');
       // Details SHOULD be exposed in debug mode
       expect(response.details).toBeDefined();
       expect(response.details).toContain('TMDb API error 401');
@@ -245,7 +245,7 @@ describe('Error Sanitization Tests', () => {
       expect(responseStr).not.toContain('at async');
       expect(responseStr).not.toContain('.ts:');
       // Should have a clear, generic message
-      expect(response.message).toMatch(/Invalid or missing TMDB API key/);
+      expect(response.message).toMatch(/Invalid or missing TMDB access token/);
     });
   });
 });

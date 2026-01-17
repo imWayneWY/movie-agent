@@ -4,7 +4,7 @@ import { MovieAgent } from '../agent';
 
 describe('MovieAgentFactory', () => {
   const validConfig = {
-    tmdbApiKey: 'test-api-key',
+    tmdbAccessToken: 'test-api-key',
   };
 
   describe('create', () => {
@@ -16,7 +16,7 @@ describe('MovieAgentFactory', () => {
 
     it('should create MovieAgent with full config', () => {
       const fullConfig = {
-        tmdbApiKey: 'test-api-key',
+        tmdbAccessToken: 'test-api-key',
         tmdbBaseUrl: 'https://custom-api.com',
         tmdbRegion: 'US',
         llmProvider: 'gemini' as const,
@@ -72,23 +72,23 @@ describe('MovieAgentFactory', () => {
       expect(agent).toBeInstanceOf(MovieAgent);
     });
 
-    it('should throw error when tmdbApiKey is missing', () => {
+    it('should throw error when tmdbAccessToken is missing', () => {
       expect(() =>
         MovieAgentFactory.create({
-          tmdbApiKey: '',
+          tmdbAccessToken: '',
         })
-      ).toThrow('TMDB API key is required');
+      ).toThrow('TMDB access token is required');
     });
 
-    it('should throw error when tmdbApiKey is undefined', () => {
+    it('should throw error when tmdbAccessToken is undefined', () => {
       expect(() => MovieAgentFactory.create({} as any)).toThrow(
-        'TMDB API key is required'
+        'TMDB access token is required'
       );
     });
 
     it('should accept custom tmdbBaseUrl', () => {
       const agent = MovieAgentFactory.create({
-        tmdbApiKey: 'test-key',
+        tmdbAccessToken: 'test-key',
         tmdbBaseUrl: 'https://custom.api.com/v3',
       });
 
@@ -97,7 +97,7 @@ describe('MovieAgentFactory', () => {
 
     it('should accept custom tmdbRegion', () => {
       const agent = MovieAgentFactory.create({
-        tmdbApiKey: 'test-key',
+        tmdbAccessToken: 'test-key',
         tmdbRegion: 'US',
       });
 
@@ -106,7 +106,7 @@ describe('MovieAgentFactory', () => {
 
     it('should accept LLM provider configuration', () => {
       const agent = MovieAgentFactory.create({
-        tmdbApiKey: 'test-key',
+        tmdbAccessToken: 'test-key',
         llmProvider: 'gemini',
         geminiApiKey: 'gemini-test-key',
       });
@@ -116,7 +116,7 @@ describe('MovieAgentFactory', () => {
 
     it('should accept Azure OpenAI configuration', () => {
       const agent = MovieAgentFactory.create({
-        tmdbApiKey: 'test-key',
+        tmdbAccessToken: 'test-key',
         llmProvider: 'azure',
         azureOpenAiApiKey: 'azure-key',
         azureOpenAiEndpoint: 'https://test.openai.azure.com',
@@ -128,7 +128,7 @@ describe('MovieAgentFactory', () => {
 
     it('should accept cache TTL configuration', () => {
       const agent = MovieAgentFactory.create({
-        tmdbApiKey: 'test-key',
+        tmdbAccessToken: 'test-key',
         cacheTtl: 120000,
       });
 
@@ -137,7 +137,7 @@ describe('MovieAgentFactory', () => {
 
     it('should accept recommendation count configuration', () => {
       const agent = MovieAgentFactory.create({
-        tmdbApiKey: 'test-key',
+        tmdbAccessToken: 'test-key',
         maxRecommendations: 10,
         minRecommendations: 2,
       });
@@ -159,7 +159,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should create MovieAgent from environment variables', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
 
       const agent = MovieAgentFactory.fromEnv();
 
@@ -167,7 +167,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should create MovieAgent with debug enabled', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
 
       const agent = MovieAgentFactory.fromEnv(true);
 
@@ -175,23 +175,23 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should create MovieAgent with debug disabled by default', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
 
       const agent = MovieAgentFactory.fromEnv();
 
       expect(agent).toBeInstanceOf(MovieAgent);
     });
 
-    it('should throw error when TMDB_API_KEY is not in environment', () => {
-      delete process.env.TMDB_API_KEY;
+    it('should throw error when TMDB_ACCESS_TOKEN is not in environment', () => {
+      delete process.env.TMDB_ACCESS_TOKEN;
 
       expect(() => MovieAgentFactory.fromEnv()).toThrow(
-        'TMDB_API_KEY environment variable is required'
+        'TMDB_ACCESS_TOKEN environment variable is required'
       );
     });
 
     it('should use TMDB_BASE_URL from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.TMDB_BASE_URL = 'https://custom-api.com';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -200,7 +200,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should use TMDB_REGION from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.TMDB_REGION = 'US';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -209,7 +209,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should use LLM_PROVIDER from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.LLM_PROVIDER = 'gemini';
       process.env.GEMINI_API_KEY = 'gemini-key';
 
@@ -219,7 +219,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should use Azure OpenAI config from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.LLM_PROVIDER = 'azure';
       process.env.AZURE_OPENAI_API_KEY = 'azure-key';
       process.env.AZURE_OPENAI_ENDPOINT = 'https://test.openai.azure.com';
@@ -231,7 +231,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should use OPENAI_API_KEY from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.OPENAI_API_KEY = 'openai-key';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -240,7 +240,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should use CACHE_TTL from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.CACHE_TTL = '120000';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -249,7 +249,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should use MAX_RECOMMENDATIONS from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.MAX_RECOMMENDATIONS = '10';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -258,7 +258,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should use MIN_RECOMMENDATIONS from environment', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.MIN_RECOMMENDATIONS = '2';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -267,7 +267,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should handle all environment variables together', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.TMDB_BASE_URL = 'https://custom-api.com';
       process.env.TMDB_REGION = 'US';
       process.env.LLM_PROVIDER = 'gemini';
@@ -286,7 +286,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should handle missing optional environment variables', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       // All other variables undefined
 
       const agent = MovieAgentFactory.fromEnv();
@@ -295,7 +295,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should handle invalid CACHE_TTL gracefully', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.CACHE_TTL = 'not-a-number';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -304,7 +304,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should handle invalid MAX_RECOMMENDATIONS gracefully', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.MAX_RECOMMENDATIONS = 'not-a-number';
 
       const agent = MovieAgentFactory.fromEnv();
@@ -313,7 +313,7 @@ describe('MovieAgentFactory', () => {
     });
 
     it('should handle invalid MIN_RECOMMENDATIONS gracefully', () => {
-      process.env.TMDB_API_KEY = 'test-api-key';
+      process.env.TMDB_ACCESS_TOKEN = 'test-api-key';
       process.env.MIN_RECOMMENDATIONS = 'not-a-number';
 
       const agent = MovieAgentFactory.fromEnv();

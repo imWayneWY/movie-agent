@@ -191,7 +191,7 @@ export class MovieAgent {
     ) {
       return this.createErrorResponse(
         'INVALID_API_KEY',
-        'Invalid or missing TMDB API key',
+        'Invalid or missing TMDB access token',
         errorMessage
       );
     }

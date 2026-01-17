@@ -616,7 +616,7 @@ LangChain Agent
 ### 9.1 Environment Variables
 ```bash
 # TMDb MCP Configuration
-TMDB_API_KEY=your_tmdb_key
+TMDB_ACCESS_TOKEN=your_tmdb_key
 TMDB_MCP_SERVER_URL=http://localhost:3000 (if using remote MCP)
 TMDB_REGION=CA (for Canadian watch providers)
 

@@ -11,7 +11,7 @@ describe('Config', () => {
   });
 
   it('should use default region, ttl, min/max recommendations', () => {
-    process.env.TMDB_API_KEY = 'test';
+    process.env.TMDB_ACCESS_TOKEN = 'test';
     process.env.TMDB_BASE_URL = '';
     jest.resetModules();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -22,17 +22,17 @@ describe('Config', () => {
     expect(cfg.MIN_RECOMMENDATIONS).toBe(3);
   });
 
-  it('should allow empty TMDB_API_KEY (validation happens in factory)', () => {
-    process.env.TMDB_API_KEY = '';
+  it('should allow empty TMDB_ACCESS_TOKEN (validation happens in factory)', () => {
+    process.env.TMDB_ACCESS_TOKEN = '';
     process.env.TMDB_BASE_URL = 'http://localhost';
     jest.resetModules();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const cfg = require('../config').default;
-    expect(cfg.TMDB_API_KEY).toBe('');
+    expect(cfg.TMDB_ACCESS_TOKEN).toBe('');
   });
 
   it('should default TMDB_BASE_URL when missing', () => {
-    process.env.TMDB_API_KEY = 'test';
+    process.env.TMDB_ACCESS_TOKEN = 'test';
     delete process.env.TMDB_BASE_URL;
     jest.resetModules();
     // eslint-disable-next-line @typescript-eslint/no-var-requires

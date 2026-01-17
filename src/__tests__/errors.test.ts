@@ -145,7 +145,7 @@ describe('Error Handling Tests', () => {
 
       assertIsErrorResponse(response);
       expect(response.errorType).toBe('INVALID_API_KEY');
-      expect(response.message).toBe('Invalid or missing TMDB API key');
+      expect(response.message).toBe('Invalid or missing TMDB access token');
       expect(response.details).toBeDefined();
       expect(response.details).toContain('401');
     });
@@ -160,7 +160,7 @@ describe('Error Handling Tests', () => {
 
       assertIsErrorResponse(response);
       expect(response.errorType).toBe('INVALID_API_KEY');
-      expect(response.message).toContain('API key');
+      expect(response.message).toContain('access token');
     });
 
     it('should return INVALID_API_KEY error with all filters', async () => {
