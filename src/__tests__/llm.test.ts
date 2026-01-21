@@ -60,6 +60,7 @@ describe('LLMService', () => {
         ],
         matchReason: 'Matches your excited mood',
         posterUrl: 'https://image.tmdb.org/t/p/w500/test.jpg',
+        rating: 8.5,
       },
       {
         title: 'Another Movie',
@@ -70,6 +71,7 @@ describe('LLMService', () => {
         streamingPlatforms: [],
         matchReason: 'Highly rated',
         posterUrl: null,
+        rating: 7.8,
       },
     ],
     metadata: {
@@ -213,6 +215,7 @@ describe('LLMService', () => {
             streamingPlatforms: [],
             matchReason: 'Matches preferences',
             posterUrl: 'https://image.tmdb.org/t/p/w500/test.jpg',
+            rating: 7.5,
           },
         ],
         metadata: {

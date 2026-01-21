@@ -89,6 +89,7 @@ export function toRecommendation(
     overview: string;
     genres: Array<{ id: number; name: string }>;
     poster_path?: string | null;
+    vote_average?: number | null;
   },
   providers: StreamingPlatform[],
   reason: string
@@ -97,6 +98,7 @@ export function toRecommendation(
   const description = buildDescription(movie.overview);
   const genres = movie.genres.map(g => g.name);
   const posterUrl = buildPosterUrl(movie.poster_path);
+  const rating = movie.vote_average ?? null;
 
   return {
     title: movie.title,
@@ -107,6 +109,7 @@ export function toRecommendation(
     streamingPlatforms: providers,
     matchReason: reason,
     posterUrl,
+    rating,
   };
 }
 

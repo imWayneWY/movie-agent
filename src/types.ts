@@ -66,6 +66,8 @@ export interface MovieRecommendation {
   matchReason: string;
   /** URL to movie poster image (w500 size) */
   posterUrl: string | null;
+  /** TMDB rating (0-10 scale) */
+  rating: number | null;
 }
 
 /**

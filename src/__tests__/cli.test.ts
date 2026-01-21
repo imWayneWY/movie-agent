@@ -284,7 +284,9 @@ describe('CLI', () => {
     });
 
     it('should accept single year flag', async () => {
-      const { stderr } = await runCLI(['--year', '2023'], { TMDB_ACCESS_TOKEN: '' });
+      const { stderr } = await runCLI(['--year', '2023'], {
+        TMDB_ACCESS_TOKEN: '',
+      });
 
       expect(stderr).toContain('TMDb access token');
     });

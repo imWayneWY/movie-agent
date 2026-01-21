@@ -64,7 +64,7 @@ export class LLMService {
 
     // Create the prompt template
     const promptTemplate = PromptTemplate.fromTemplate(`
-You are a friendly movie recommendation assistant. Format the following movie recommendations in an engaging, readable way.
+You are a friendly movie recommendation assistant. Analyze the movie descriptions and create personalized recommendations.
 
 User Input: {userInput}
 
@@ -72,17 +72,25 @@ Movie Recommendations:
 {recommendations}
 
 Instructions:
-- Create a warm, conversational introduction
+- Start with a brief, warm greeting (1-2 sentences max)
+- Format as a **numbered markdown list**
 - For each movie, include:
-  * Title, year, and runtime
-  * Genres
-  * A compelling description
-  * Available streaming platforms with emoji 📺
-  * A brief explanation of why it matches the user's preferences (✨ Why:)
-- Use markdown formatting (bold, lists, etc.)
-- Add visual separators between movies
-- Keep it concise but engaging
-- Use emojis to make it more visually appealing
+  * **Title** (Year) • Runtime
+  * Genres as tags
+  * 📺 Streaming: list platforms
+  * ✨ **Why watch this**: Read the movie's description and write 1-2 sentences explaining why THIS specific movie would appeal to the user based on their mood/preferences AND the movie's actual plot/themes
+- Keep each recommendation concise (4-5 lines max)
+- Use --- between movies for visual separation
+
+Example format:
+### 🎬 Your Recommendations
+
+1. **Movie Title** (2024) • 120 min
+   - 🏷️ Action, Thriller
+   - 📺 Netflix, Prime Video
+   - ✨ **Why watch this**: [Personalized reason based on movie content + user preferences]
+
+---
 
 Generate the formatted output:
 `);

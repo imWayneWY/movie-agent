@@ -499,6 +499,7 @@ export class MovieAgent {
           overview: movie.overview || '',
           genres: movie.genres || [],
           poster_path: movie.poster_path,
+          vote_average: movie.vote_average,
         },
         streamingPlatforms,
         reason

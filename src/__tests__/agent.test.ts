@@ -650,7 +650,7 @@ describe('MovieAgent', () => {
       // Create agent with LLM explicitly disabled to test fallback format
       const agentNoLLM = new MovieAgent(
         mockClient,
-        (msg) => logMessages.push(msg),
+        msg => logMessages.push(msg),
         false // disable LLM
       );
 
@@ -687,7 +687,7 @@ describe('MovieAgent', () => {
       // Create agent with LLM explicitly disabled to test fallback format
       const agentNoLLM = new MovieAgent(
         mockClient,
-        (msg) => logMessages.push(msg),
+        msg => logMessages.push(msg),
         false // disable LLM
       );
 
@@ -733,7 +733,7 @@ describe('MovieAgent', () => {
       // Create agent with LLM explicitly disabled to test fallback format
       const agentNoLLM = new MovieAgent(
         mockClient,
-        (msg) => logMessages.push(msg),
+        msg => logMessages.push(msg),
         false // disable LLM
       );
 
@@ -785,7 +785,7 @@ describe('MovieAgent', () => {
       // Create agent with LLM explicitly disabled to test fallback format
       const agentNoLLM = new MovieAgent(
         mockClient,
-        (msg) => logMessages.push(msg),
+        msg => logMessages.push(msg),
         false // disable LLM
       );
 

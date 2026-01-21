@@ -95,6 +95,7 @@ describe('format', () => {
         { id: 2, name: 'Adventure' },
       ],
       poster_path: '/abc123.jpg',
+      vote_average: 8.5,
     };
 
     const mockProviders: StreamingPlatform[] = [
@@ -115,6 +116,7 @@ describe('format', () => {
       expect(result).toHaveProperty('streamingPlatforms');
       expect(result).toHaveProperty('matchReason');
       expect(result).toHaveProperty('posterUrl');
+      expect(result).toHaveProperty('rating');
     });
 
     it('should correctly extract release year from date', () => {
@@ -170,6 +172,21 @@ describe('format', () => {
       );
       expect(result.posterUrl).toBeNull();
     });
+
+    it('should include rating when vote_average is provided', () => {
+      const result = toRecommendation(mockMovie, mockProviders, mockReason);
+      expect(result.rating).toBe(8.5);
+    });
+
+    it('should return null rating when vote_average is missing', () => {
+      const movieWithoutRating = { ...mockMovie, vote_average: undefined };
+      const result = toRecommendation(
+        movieWithoutRating,
+        mockProviders,
+        mockReason
+      );
+      expect(result.rating).toBeNull();
+    });
   });
 
   describe('formatResponse', () => {
@@ -184,6 +201,7 @@ describe('format', () => {
       ],
       matchReason: 'Test reason',
       posterUrl: 'https://image.tmdb.org/t/p/w500/abc123.jpg',
+      rating: 8.5,
     };
 
     it('should accept 3 recommendations', () => {
@@ -313,6 +331,7 @@ describe('format', () => {
           { id: 1, name: 'Comedy' },
           { id: 2, name: 'Drama' },
         ],
+        vote_average: 7.8,
       };
 
       const providers: StreamingPlatform[] = [
